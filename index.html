@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trip Tales</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Scroll progress bar -->
+  <div id="scrollProgress"></div>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <a class="logo" href="index.html">&#9992; Trip Tales</a>
+
+    <!-- Hamburger -->
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#home" onclick="closeMenu()">Home</a></li>
+      <li><a href="#destinations" onclick="closeMenu()">Destinations</a></li>
+      <li><a href="#stories" onclick="closeMenu()">Stories</a></li>
+      <li><a href="#voice" onclick="closeMenu()">Voice Entries</a></li>
+      <li><a href="#gallery" onclick="closeMenu()">Gallery</a></li>
+      <li><a href="#contact" onclick="closeMenu()">Contact</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="dark-toggle" id="darkToggle" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
+      <a href="auth.html" class="nav-auth-btn">Login / Sign Up</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" id="home">
+    <div class="hero-content">
+      <h1>Explore the World,<br/>One Story at a Time</h1>
+      <p>Discover breathtaking destinations, travel tips, and inspiring stories from fellow adventurers.</p>
+      <a href="#destinations" class="btn">Start Exploring</a>
+    </div>
+  </section>
+
+  <!-- Destinations -->
+  <section class="section" id="destinations">
+    <h2 class="section-title">Popular Destinations</h2>
+    <p class="section-sub">Hand-picked places loved by our travellers</p>
+
+    <!-- Search bar -->
+    <div class="dest-search-wrap">
+      <input type="text" id="destSearch" placeholder="🔍  Search destinations..." oninput="searchDestinations(this.value)" />
+    </div>
+
+    <div class="cards" id="cardsGrid">
+
+      <div class="card fade-in" data-name="haridwar" onclick="openDestModal('haridwar')">
+        <button class="fav-btn" onclick="toggleFav(event,'haridwar')" title="Favourite">♡</button>
+        <div class="card-img" style="background:#ffe0b2;">🕉️</div>
+        <div class="card-body">
+          <h3>Haridwar, India</h3>
+          <p>One of the holiest cities in India, where the Ganges descends from the Himalayas — witness the divine Ganga Aarti at dusk.</p>
+          <span class="tag">Spiritual</span>
+          <span class="tag">Culture</span>
+        </div>
+      </div>
+
+      <div class="card fade-in" data-name="rishikesh" onclick="openDestModal('rishikesh')">
+        <button class="fav-btn" onclick="toggleFav(event,'rishikesh')" title="Favourite">♡</button>
+        <div class="card-img" style="background:#c8e6c9;">🏞️</div>
+        <div class="card-body">
+          <h3>Rishikesh, India</h3>
+          <p>The yoga capital of the world, nestled in the Himalayan foothills with thrilling river rafting on the Ganges.</p>
+          <span class="tag">Adventure</span>
+          <span class="tag">Wellness</span>
+        </div>
+      </div>
+
+      <div class="card fade-in" data-name="varanasi" onclick="openDestModal('varanasi')">
+        <button class="fav-btn" onclick="toggleFav(event,'varanasi')" title="Favourite">♡</button>
+        <div class="card-img" style="background:#ffe8cc;">🪔</div>
+        <div class="card-body">
+          <h3>Varanasi, India</h3>
+          <p>The eternal city on the Ganges — ancient ghats, glowing diyas, and centuries of spiritual heritage await.</p>
+          <span class="tag">Spiritual</span>
+          <span class="tag">History</span>
+        </div>
+      </div>
+
+      <div class="card fade-in" data-name="vizag" onclick="openDestModal('vizag')">
+        <button class="fav-btn" onclick="toggleFav(event,'vizag')" title="Favourite">♡</button>
+        <div class="card-img" style="background:#b3e5fc;">🌊</div>
+        <div class="card-body">
+          <h3>Vizag, India</h3>
+          <p>Visakhapatnam's pristine beaches, scenic valleys of Araku, and vibrant coastal charm make it a hidden gem of Andhra Pradesh.</p>
+          <span class="tag">Beach</span>
+          <span class="tag">Nature</span>
+        </div>
+      </div>
+
+      <div class="card fade-in" data-name="lucknow" onclick="openDestModal('lucknow')">
+        <button class="fav-btn" onclick="toggleFav(event,'lucknow')" title="Favourite">♡</button>
+        <div class="card-img" style="background:#f8bbd0;">🍢</div>
+        <div class="card-body">
+          <h3>Lucknow, India</h3>
+          <p>The city of Nawabs — famous for its Mughal architecture, fragrant biryanis, delicate chikankari craft, and gracious tehzeeb.</p>
+          <span class="tag">Culture</span>
+          <span class="tag">Food</span>
+        </div>
+      </div>
+
+      <div class="card fade-in" data-name="agra" onclick="openDestModal('agra')">
+        <button class="fav-btn" onclick="toggleFav(event,'agra')" title="Favourite">♡</button>
+        <div class="card-img" style="background:#e1f5fe;">🕌</div>
+        <div class="card-body">
+          <h3>Agra, India</h3>
+          <p>Home to the iconic Taj Mahal — a UNESCO World Heritage Site and an eternal symbol of love set on the banks of the Yamuna.</p>
+          <span class="tag">History</span>
+          <span class="tag">Culture</span>
+        </div>
+      </div>
+
+      <div class="card fade-in" data-name="mussoorie" onclick="openDestModal('mussoorie')">
+        <button class="fav-btn" onclick="toggleFav(event,'mussoorie')" title="Favourite">♡</button>
+        <div class="card-img" style="background:#dcedc8;">⛰️</div>
+        <div class="card-body">
+          <h3>Mussoorie, India</h3>
+          <p>The Queen of Hills — misty Himalayan valleys, cascading Kempty Falls, and a charming Mall Road make it a perfect mountain escape.</p>
+          <span class="tag">Mountains</span>
+          <span class="tag">Nature</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Stories -->
+  <section class="section stories-section" id="stories">
+    <h2 class="section-title">Travel Stories</h2>
+    <p class="section-sub">Real experiences from real travellers</p>
+    <div class="stories">
+
+      <div class="story">
+        <div class="story-avatar">👩‍🦱</div>
+        <div class="story-content">
+          <h4>Ananya S. &mdash; <span>Haridwar, India</span></h4>
+          <p>"Watching the Ganga Aarti at Har Ki Pauri was the most soul-stirring experience of my life. The chants, the flames, the river — pure divinity."</p>
+          <div class="stars">★★★★★</div>
+        </div>
+      </div>
+
+      <div class="story">
+        <div class="story-avatar">👨‍🦳</div>
+        <div class="story-content">
+          <h4>Rohan M. &mdash; <span>Rishikesh, India</span></h4>
+          <p>"River rafting on the Ganges in Rishikesh was an absolute thrill! And the evenings doing yoga by the river brought a peace I never knew I needed."</p>
+          <div class="stars">★★★★★</div>
+        </div>
+      </div>
+
+      <div class="story">
+        <div class="story-avatar">👩‍🦰</div>
+        <div class="story-content">
+          <h4>Priya R. &mdash; <span>Varanasi, India</span></h4>
+          <p>"Varanasi is like no place on earth. The ancient ghats at sunrise, the floating diyas, the sounds of prayers — it touches something deep in your soul."</p>
+          <div class="stars">★★★★★</div>
+        </div>
+      </div>
+
+      <div class="story">
+        <div class="story-avatar">👨‍🦱</div>
+        <div class="story-content">
+          <h4>Karthik V. &mdash; <span>Vizag, India</span></h4>
+          <p>"Vizag surprised me completely — the RK Beach at sunset, the Araku Valley coffee, the submarine museum. It's a destination that has it all!"</p>
+          <div class="stars">★★★★★</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Voice Entries -->
+  <section class="section voice-section" id="voice">
+    <h2 class="section-title">Voice Entries</h2>
+    <p class="section-sub">Record your travel experience and share it with fellow explorers</p>
+
+    <!-- Recorder -->
+    <div class="recorder-box">
+      <div class="recorder-fields">
+        <input type="text" id="voice-name" placeholder="Your name" maxlength="40" />
+        <select id="voice-destination">
+          <option value="" disabled selected>Select destination</option>
+          <option value="Haridwar, India">Haridwar, India</option>
+          <option value="Rishikesh, India">Rishikesh, India</option>
+          <option value="Varanasi, India">Varanasi, India</option>
+          <option value="Vizag, India">Vizag, India</option>
+          <option value="Lucknow, India">Lucknow, India</option>
+          <option value="Agra, India">Agra, India</option>
+          <option value="Mussoorie, India">Mussoorie, India</option>
+        </select>
+      </div>
+      <div class="recorder-controls">
+        <button class="rec-btn" id="recordBtn" onclick="toggleRecording()">
+          <span class="rec-icon">🎙️</span> Start Recording
+        </button>
+        <span class="rec-timer" id="recTimer">00:00</span>
+      </div>
+      <div class="recorder-preview" id="recorderPreview" style="display:none;">
+        <audio id="previewAudio" controls></audio>
+        <button class="btn submit-voice-btn" onclick="submitVoiceEntry()">Share Entry</button>
+        <button class="discard-btn" onclick="discardRecording()">Discard</button>
+      </div>
+      <p class="rec-status" id="recStatus"></p>
+    </div>
+
+    <!-- Voice Feed -->
+    <div class="voice-feed" id="voiceFeed"></div>
+  </section>
+
+  <!-- Gallery -->
+  <section class="section gallery-section" id="gallery">
+    <h2 class="section-title">Travel Gallery</h2>
+    <p class="section-sub">Moments captured from across India</p>
+
+    <!-- Filter Tabs -->
+    <div class="gallery-filters">
+      <button class="gf-btn active" onclick="filterGallery('all', this)">All</button>
+      <button class="gf-btn" onclick="filterGallery('haridwar', this)">Haridwar</button>
+      <button class="gf-btn" onclick="filterGallery('rishikesh', this)">Rishikesh</button>
+      <button class="gf-btn" onclick="filterGallery('varanasi', this)">Varanasi</button>
+      <button class="gf-btn" onclick="filterGallery('vizag', this)">Vizag</button>
+      <button class="gf-btn" onclick="filterGallery('lucknow', this)">Lucknow</button>
+      <button class="gf-btn" onclick="filterGallery('agra', this)">Agra</button>
+      <button class="gf-btn" onclick="filterGallery('mussoorie', this)">Mussoorie</button>
+    </div>
+
+    <!-- Grid -->
+    <div class="gallery-grid" id="galleryGrid">
+
+      <div class="gallery-item" data-place="haridwar">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#ffe0b2,#ffb74d);">
+          <span>🕉️</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>Ganga Aarti</p>
+          <span>Haridwar</span>
+        </div>
+      </div>
+
+      <div class="gallery-item large" data-place="haridwar">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#ffcc80,#ff8a65);">
+          <span>🌊</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>Har Ki Pauri</p>
+          <span>Haridwar</span>
+        </div>
+      </div>
+
+      <div class="gallery-item" data-place="rishikesh">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#c8e6c9,#66bb6a);">
+          <span>🏞️</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>River Rafting</p>
+          <span>Rishikesh</span>
+        </div>
+      </div>
+
+      <div class="gallery-item" data-place="rishikesh">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#a5d6a7,#43a047);">
+          <span>🧘</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>Yoga Retreat</p>
+          <span>Rishikesh</span>
+        </div>
+      </div>
+
+      <div class="gallery-item large" data-place="varanasi">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#ffe8cc,#ffab40);">
+          <span>🪔</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>Evening Aarti</p>
+          <span>Varanasi</span>
+        </div>
+      </div>
+
+      <div class="gallery-item" data-place="varanasi">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#ffd180,#ff6d00);">
+          <span>🛶</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>Boat Ride on Ganges</p>
+          <span>Varanasi</span>
+        </div>
+      </div>
+
+      <div class="gallery-item" data-place="vizag">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#b3e5fc,#0288d1);">
+          <span>🌊</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>RK Beach</p>
+          <span>Vizag</span>
+        </div>
+      </div>
+
+      <div class="gallery-item large" data-place="vizag">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#81d4fa,#0277bd);">
+          <span>🐚</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>Araku Valley</p>
+          <span>Vizag</span>
+        </div>
+      </div>
+
+      <div class="gallery-item" data-place="lucknow">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#f8bbd0,#e91e63);">
+          <span>🏰</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>Bara Imambara</p>
+          <span>Lucknow</span>
+        </div>
+      </div>
+
+      <div class="gallery-item" data-place="lucknow">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#f48fb1,#c2185b);">
+          <span>🍢</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>Tunday Kababs</p>
+          <span>Lucknow</span>
+        </div>
+      </div>
+
+      <div class="gallery-item large" data-place="agra">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#e1f5fe,#0288d1);">
+          <span>🕌</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>Taj Mahal at Sunrise</p>
+          <span>Agra</span>
+        </div>
+      </div>
+
+      <div class="gallery-item" data-place="agra">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#bbdefb,#1976d2);">
+          <span>🏯</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>Agra Fort</p>
+          <span>Agra</span>
+        </div>
+      </div>
+
+      <div class="gallery-item" data-place="mussoorie">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#dcedc8,#558b2f);">
+          <span>⛰️</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>Mall Road</p>
+          <span>Mussoorie</span>
+        </div>
+      </div>
+
+      <div class="gallery-item large" data-place="mussoorie">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#c5e1a5,#33691e);">
+          <span>💧</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>Kempty Falls</p>
+          <span>Mussoorie</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+      <div class="lightbox-content">
+        <div class="lightbox-thumb" id="lightboxThumb"></div>
+        <p class="lightbox-caption" id="lightboxCaption"></p>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Newsletter -->
+  <section class="newsletter" id="contact">
+    <h2>Stay Inspired</h2>
+    <p>Get the latest travel stories and destination guides in your inbox.</p>
+    <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+      <input type="email" placeholder="Enter your email address" required />
+      <button type="submit" class="btn">Subscribe</button>
+    </form>
+    <p class="confirm-msg" id="confirm-msg"></p>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&#9992; <strong>Trip Tales</strong> &copy; 2026 &mdash; Made with love for travellers everywhere.</p>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Instagram</a>
+      <a href="#">Twitter</a>
+    </div>
+  </footer>
+
+  <!-- Destination Detail Modal -->
+  <div class="dest-modal-overlay" id="destModal" onclick="closeDestModal(event)">
+    <div class="dest-modal-box" id="destModalBox"></div>
+  </div>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
