@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
@@ -46,6 +47,37 @@ function publicUser(user) {
 function requireAuth(req, res, next) {
   if (!req.session.userId) return res.status(401).json({ error: 'Not logged in.' });
   next();
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+async function sendPasswordResetEmail(toEmail, name, resetUrl) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY not set — cannot send password reset email.');
+    return;
+  }
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: process.env.RESEND_FROM || 'Trip Tales <onboarding@resend.dev>',
+      to: [toEmail],
+      subject: 'Reset your Trip Tales password',
+      html: `<p>Hi ${escapeHtml(name)},</p>
+        <p>Someone requested a password reset for your Trip Tales account. Click the link below to choose a new password — it expires in 1 hour.</p>
+        <p><a href="${resetUrl}">${resetUrl}</a></p>
+        <p>If you didn't request this, you can safely ignore this email.</p>`,
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Resend API error ${res.status}: ${body}`);
+  }
 }
 
 function mapDestination(row) {
@@ -185,10 +217,50 @@ app.get('/api/auth/me', (req, res) => {
   res.json({ user: publicUser(user) });
 });
 
-app.post('/api/auth/forgot', (req, res) => {
-  // No email service configured; respond the same way regardless of whether the
-  // address is registered, so this endpoint can't be used to enumerate accounts.
-  res.json({ message: "If that email is registered, we've sent a reset link." });
+app.post('/api/auth/forgot', async (req, res) => {
+  const email = (req.body.email || '').trim().toLowerCase();
+  const genericResponse = { message: "If that email is registered, we've sent a reset link." };
+  if (!email) return res.json(genericResponse);
+
+  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+  if (user) {
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+
+    db.prepare('DELETE FROM password_resets WHERE user_id = ?').run(user.id);
+    db.prepare('INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?, ?, ?)')
+      .run(user.id, tokenHash, expiresAt);
+
+    const resetUrl = `${FRONTEND_ORIGIN}/reset-password.html?token=${token}`;
+    try {
+      await sendPasswordResetEmail(user.email, user.name, resetUrl);
+    } catch (err) {
+      console.error('Failed to send password reset email:', err.message);
+    }
+  }
+
+  // Always the same response, whether or not the account exists, so this
+  // endpoint can't be used to enumerate registered emails.
+  res.json(genericResponse);
+});
+
+app.post('/api/auth/reset-password', (req, res) => {
+  const { token, password } = req.body || {};
+  if (!token || !password) return res.status(400).json({ error: 'Token and new password are required.' });
+  if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  const record = db.prepare('SELECT * FROM password_resets WHERE token_hash = ?').get(tokenHash);
+  if (!record || new Date(record.expires_at) < new Date()) {
+    return res.status(400).json({ error: 'This reset link is invalid or has expired.' });
+  }
+
+  const hash = bcrypt.hashSync(password, 10);
+  db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, record.user_id);
+  db.prepare('DELETE FROM password_resets WHERE id = ?').run(record.id);
+
+  res.json({ ok: true });
 });
 
 // ---- Favourites ----
