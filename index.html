@@ -103,6 +103,22 @@
     <h2 class="section-title">Travel Gallery</h2>
     <p class="section-sub">Moments captured from across India</p>
 
+    <!-- Add Photo -->
+    <div class="gallery-upload-box">
+      <div class="gallery-upload-fields">
+        <input type="text" id="gallery-name" placeholder="Your name" maxlength="40" />
+        <select id="gallery-destination">
+          <option value="" disabled selected>Select destination</option>
+        </select>
+        <input type="text" id="gallery-caption" placeholder="Caption (optional)" maxlength="60" />
+      </div>
+      <div class="gallery-upload-controls">
+        <input type="file" id="gallery-photo-input" accept="image/png,image/jpeg,image/webp,image/gif" />
+        <button class="btn submit-photo-btn" onclick="submitGalleryPhoto()">Add Photo</button>
+      </div>
+      <p class="gallery-upload-status" id="galleryUploadStatus"></p>
+    </div>
+
     <!-- Filter Tabs -->
     <div class="gallery-filters" id="galleryFilters"></div>
 

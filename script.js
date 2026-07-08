@@ -127,16 +127,17 @@ async function loadDestinations() {
 
     observeFadeIns();
     initFavourites();
-    populateVoiceDestinations(destinations);
+    populateDestinationSelect('voice-destination', destinations, d => d.name);
+    populateDestinationSelect('gallery-destination', destinations, d => d.id);
   } catch (err) {
     grid.innerHTML = '<p class="loading-msg">Could not load destinations.</p>';
   }
 }
 
-function populateVoiceDestinations(destinations) {
-  const select = document.getElementById('voice-destination');
+function populateDestinationSelect(selectId, destinations, valueFor) {
+  const select = document.getElementById(selectId);
   if (!select) return;
-  const options = destinations.map(d => `<option value="${escapeHtml(d.name)}">${escapeHtml(d.name)}</option>`).join('');
+  const options = destinations.map(d => `<option value="${escapeHtml(valueFor(d))}">${escapeHtml(d.name)}</option>`).join('');
   select.innerHTML = '<option value="" disabled selected>Select destination</option>' + options;
 }
 
@@ -275,8 +276,8 @@ async function loadGallery() {
 
     grid.innerHTML = items.map(item => `
       <div class="gallery-item${item.large ? ' large' : ''}" data-place="${item.place}">
-        <div class="gallery-thumb" style="background:linear-gradient(${item.gradient});">
-          <span>${item.emoji}</span>
+        <div class="gallery-thumb" ${item.imageUrl ? '' : `style="background:linear-gradient(${item.gradient});"`}>
+          ${item.imageUrl ? `<img src="${API_BASE}${item.imageUrl}" alt="${escapeHtml(item.caption)}" class="gallery-photo" />` : `<span>${item.emoji}</span>`}
         </div>
         <div class="gallery-overlay">
           <p>${escapeHtml(item.caption)}</p>
@@ -306,6 +307,47 @@ function renderGalleryFilters(items) {
 
   container.innerHTML = `<button class="gf-btn active" onclick="filterGallery('all', this)">All</button>`
     + places.map(p => `<button class="gf-btn" onclick="filterGallery('${p}', this)">${escapeHtml(label(p))}</button>`).join('');
+}
+
+async function submitGalleryPhoto() {
+  const name        = document.getElementById('gallery-name').value.trim();
+  const place       = document.getElementById('gallery-destination').value;
+  const caption     = document.getElementById('gallery-caption').value.trim();
+  const fileInput   = document.getElementById('gallery-photo-input');
+  const status      = document.getElementById('galleryUploadStatus');
+  const file        = fileInput.files[0];
+
+  if (!place) {
+    status.textContent = 'Please select a destination before adding a photo.';
+    return;
+  }
+  if (!file) {
+    status.textContent = 'Please choose a photo to upload.';
+    return;
+  }
+
+  status.textContent = 'Uploading your photo...';
+
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('place', place);
+  if (caption) formData.append('caption', caption);
+  if (name) formData.append('name', name);
+
+  try {
+    const res = await apiFetch('/api/gallery', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed.');
+
+    document.getElementById('gallery-name').value = '';
+    document.getElementById('gallery-destination').value = '';
+    document.getElementById('gallery-caption').value = '';
+    fileInput.value = '';
+    status.textContent = 'Photo added to the gallery!';
+    loadGallery();
+  } catch (err) {
+    status.textContent = err.message || 'Could not upload your photo. Please try again.';
+  }
 }
 
 function filterGallery(place, btn) {

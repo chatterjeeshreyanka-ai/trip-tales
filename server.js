@@ -40,6 +40,16 @@ const upload = multer({
   limits: { fileSize: 15 * 1024 * 1024 },
 });
 
+const IMAGE_EXTENSIONS = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' };
+const imageUpload = multer({
+  storage: multer.diskStorage({
+    destination: UPLOAD_DIR,
+    filename: (req, file, cb) => cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${IMAGE_EXTENSIONS[file.mimetype] || ''}`),
+  }),
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => cb(null, Object.prototype.hasOwnProperty.call(IMAGE_EXTENSIONS, file.mimetype)),
+});
+
 function publicUser(user) {
   return { id: user.id, name: user.name, email: user.email };
 }
@@ -114,9 +124,52 @@ app.get('/api/stories', (req, res) => {
 });
 
 // ---- Gallery ----
+function mapGalleryItem(r) {
+  return {
+    id: r.id,
+    place: r.place,
+    caption: r.caption,
+    emoji: r.emoji,
+    gradient: r.gradient,
+    large: !!r.large,
+    imageUrl: r.image_filename ? `/uploads/${r.image_filename}` : null,
+    uploaderName: r.uploader_name,
+  };
+}
+
 app.get('/api/gallery', (req, res) => {
   const rows = db.prepare('SELECT * FROM gallery_items ORDER BY id ASC').all();
-  res.json({ items: rows.map(r => ({ ...r, large: !!r.large })) });
+  res.json({ items: rows.map(mapGalleryItem) });
+});
+
+app.post('/api/gallery', imageUpload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'A JPEG, PNG, WEBP or GIF image is required.' });
+  const place = (req.body.place || '').trim().toLowerCase();
+  if (!place) return res.status(400).json({ error: 'Destination is required.' });
+
+  let caption = (req.body.caption || '').trim();
+  if (!caption) caption = 'Untitled';
+
+  let uploaderName = (req.body.name || '').trim();
+  if (!uploaderName && req.session.userId) {
+    const user = db.prepare('SELECT name FROM users WHERE id = ?').get(req.session.userId);
+    if (user) uploaderName = user.name;
+  }
+  if (!uploaderName) uploaderName = 'Anonymous';
+
+  const info = db.prepare(`
+    INSERT INTO gallery_items (place, caption, emoji, gradient, large, image_filename, uploader_name)
+    VALUES (?, ?, '', '', 0, ?, ?)
+  `).run(place, caption, req.file.filename, uploaderName);
+
+  res.json({
+    item: {
+      id: info.lastInsertRowid,
+      place, caption, emoji: '', gradient: '', large: false,
+      imageUrl: `/uploads/${req.file.filename}`,
+      uploaderName,
+    },
+  });
 });
 
 // ---- Voice entries ----

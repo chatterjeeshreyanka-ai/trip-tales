@@ -77,6 +77,17 @@ db.exec(`
   );
 `);
 
+// Migrate gallery_items to support user-uploaded photos alongside the
+// illustrated seed entries, without breaking the already-populated disk.
+function ensureColumn(table, column, definition) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!cols.some(c => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
+}
+ensureColumn('gallery_items', 'image_filename', 'TEXT');
+ensureColumn('gallery_items', 'uploader_name', 'TEXT');
+
 const destinationSeed = [
   { id: 'haridwar', name: 'Haridwar, India', emoji: '🕉️', bg: '#ffe0b2',
     cardDesc: 'One of the holiest cities in India, where the Ganges descends from the Himalayas — witness the divine Ganga Aarti at dusk.',
