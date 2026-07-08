@@ -67,6 +67,11 @@ function requireAuth(req, res, next) {
   next();
 }
 
+function requireAdmin(req, res, next) {
+  if (!isAdmin(req.session.userId)) return res.status(403).json({ error: 'Admin access required.' });
+  next();
+}
+
 function escapeHtml(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -417,6 +422,39 @@ app.post('/api/auth/reset-password', (req, res) => {
   const hash = bcrypt.hashSync(password, 10);
   db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, record.user_id);
   db.prepare('DELETE FROM password_resets WHERE id = ?').run(record.id);
+
+  res.json({ ok: true });
+});
+
+// ---- Admin: user management ----
+app.get('/api/admin/users', requireAuth, requireAdmin, (req, res) => {
+  const rows = db.prepare('SELECT id, name, email, created_at FROM users ORDER BY id ASC').all();
+  res.json({ users: rows });
+});
+
+app.delete('/api/admin/users/:id', requireAuth, requireAdmin, (req, res) => {
+  const targetId = Number(req.params.id);
+  if (targetId === req.session.userId) {
+    return res.status(400).json({ error: 'Cannot delete your own account from here.' });
+  }
+
+  const user = db.prepare('SELECT id FROM users WHERE id = ?').get(targetId);
+  if (!user) return res.status(404).json({ error: 'User not found.' });
+
+  const photos = db.prepare('SELECT image_filename FROM gallery_items WHERE user_id = ? AND image_filename IS NOT NULL').all(targetId);
+
+  db.transaction(() => {
+    db.prepare('DELETE FROM journal_entries WHERE user_id = ?').run(targetId);
+    db.prepare('DELETE FROM chat_messages WHERE sender_id = ? OR recipient_id = ?').run(targetId, targetId);
+    db.prepare('DELETE FROM favourites WHERE user_id = ?').run(targetId);
+    db.prepare('DELETE FROM password_resets WHERE user_id = ?').run(targetId);
+    db.prepare('DELETE FROM gallery_items WHERE user_id = ?').run(targetId);
+    db.prepare('DELETE FROM users WHERE id = ?').run(targetId);
+  })();
+
+  for (const photo of photos) {
+    fs.unlink(path.join(UPLOAD_DIR, photo.image_filename), () => {});
+  }
 
   res.json({ ok: true });
 });
