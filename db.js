@@ -98,6 +98,14 @@ const destinationSeed = [
     cardDesc: 'The Queen of Hills — misty Himalayan valleys, cascading Kempty Falls, and a charming Mall Road make it a perfect mountain escape.',
     fullDesc: 'The Queen of Hills offers panoramic Himalayan views, colonial-era charm on Mall Road, and the roar of Kempty Falls. A perfect escape from the summer plains.',
     bestTime: 'March – June, Sept – Nov', type: 'Mountains · Nature', idealStay: '2–3 days', tags: ['Mountains', 'Nature'] },
+  { id: 'purulia', name: 'Purulia, India', emoji: '🎭', bg: '#ffab91',
+    cardDesc: 'A rugged land of red laterite hills and the electrifying Chhau dance — home to the Ajodhya Hills and the ruins of Garpanchakot.',
+    fullDesc: "Purulia is West Bengal's rugged frontier — dry deciduous forests, the rolling Ajodhya Hills, and the haunting ruins of Garpanchakot fort. It's best known as the birthplace of the vigorous, mask-clad Chhau dance, a UNESCO-recognised martial art performed under open skies.",
+    bestTime: 'November – February', type: 'Culture · Nature', idealStay: '2–3 days', tags: ['Culture', 'Nature'] },
+  { id: 'darjeeling', name: 'Darjeeling, India', emoji: '🍃', bg: '#b2dfdb',
+    cardDesc: 'Rolling tea gardens, misty peaks, and the UNESCO toy train — the Queen of Hill Stations, crowned by views of Kangchenjunga.',
+    fullDesc: 'Perched in the Himalayan foothills, Darjeeling is famous worldwide for its aromatic tea gardens, the heritage narrow-gauge Darjeeling Himalayan Railway ("Toy Train"), and sweeping views of Kangchenjunga, the world\'s third-highest peak, best seen at sunrise from Tiger Hill.',
+    bestTime: 'March – May, Oct – Dec', type: 'Mountains · Culture', idealStay: '3–4 days', tags: ['Mountains', 'Culture'] },
 ];
 
 const storySeed = [
@@ -124,10 +132,12 @@ const gallerySeed = [
   { place: 'mussoorie', caption: 'Kempty Falls', emoji: '💧', gradient: '135deg,#c5e1a5,#33691e', large: 1 },
 ];
 
-const destCount = db.prepare('SELECT COUNT(*) AS n FROM destinations').get().n;
-if (destCount === 0) {
+// INSERT OR IGNORE (keyed on the id primary key) so newly added seed entries
+// reach an already-populated database — e.g. after the disk holding
+// destinations from a previous deploy is already seeded.
+{
   const insert = db.prepare(`
-    INSERT INTO destinations (id, name, emoji, bg, card_desc, full_desc, best_time, type, ideal_stay, tags)
+    INSERT OR IGNORE INTO destinations (id, name, emoji, bg, card_desc, full_desc, best_time, type, ideal_stay, tags)
     VALUES (@id, @name, @emoji, @bg, @cardDesc, @fullDesc, @bestTime, @type, @idealStay, @tags)
   `);
   const tx = db.transaction((rows) => {

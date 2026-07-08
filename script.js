@@ -127,9 +127,17 @@ async function loadDestinations() {
 
     observeFadeIns();
     initFavourites();
+    populateVoiceDestinations(destinations);
   } catch (err) {
     grid.innerHTML = '<p class="loading-msg">Could not load destinations.</p>';
   }
+}
+
+function populateVoiceDestinations(destinations) {
+  const select = document.getElementById('voice-destination');
+  if (!select) return;
+  const options = destinations.map(d => `<option value="${escapeHtml(d.name)}">${escapeHtml(d.name)}</option>`).join('');
+  select.innerHTML = '<option value="" disabled selected>Select destination</option>' + options;
 }
 
 function openDestModal(id) {
