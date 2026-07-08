@@ -22,83 +22,16 @@ function observeFadeIns() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  loadSession().then(initFavourites);
+  loadSession().then(() => { initFavourites(); renderJournalCompose(); });
   loadDestinations();
-  loadStories();
+  loadJournal();
   loadGallery();
   loadVoiceEntries();
 });
 
-// ── Dark mode ────────────────────────────────────────
-function toggleDark() {
-  const isDark = document.body.classList.toggle('dark');
-  document.getElementById('darkToggle').textContent = isDark ? '☀️' : '🌙';
-  localStorage.setItem('tt-dark', isDark);
-}
-
-(function initDark() {
-  if (localStorage.getItem('tt-dark') === 'true') {
-    document.body.classList.add('dark');
-    const btn = document.getElementById('darkToggle');
-    if (btn) btn.textContent = '☀️';
-  }
-})();
-
-// ── Hamburger menu ───────────────────────────────────
-function toggleMenu() {
-  document.getElementById('navLinks').classList.toggle('open');
-  document.getElementById('hamburger').classList.toggle('open');
-}
-function closeMenu() {
-  document.getElementById('navLinks').classList.remove('open');
-  document.getElementById('hamburger').classList.remove('open');
-}
-
-// ── Toast ────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  if (!t) return;
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2600);
-}
-
-function escapeHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ── Session / auth ───────────────────────────────────
-let currentUser = null;
-
-async function loadSession() {
-  try {
-    const res = await apiFetch('/api/auth/me');
-    const data = await res.json();
-    currentUser = data.user;
-  } catch (err) {
-    currentUser = null;
-  }
-  renderAuthArea();
-}
-
-function renderAuthArea() {
-  const area = document.getElementById('authArea');
-  if (!area) return;
-  if (currentUser) {
-    area.innerHTML = `
-      <span class="nav-user">Hi, ${escapeHtml(currentUser.name.split(' ')[0])}</span>
-      <button type="button" class="nav-auth-btn" onclick="logout()">Logout</button>
-    `;
-  } else {
-    area.innerHTML = `<a href="auth.html" class="nav-auth-btn">Login / Sign Up</a>`;
-  }
-}
-
-async function logout() {
-  await apiFetch('/api/auth/logout', { method: 'POST' });
-  currentUser = null;
-  renderAuthArea();
+function onLogout() {
   initFavourites();
+  renderJournalCompose();
   showToast('Logged out');
 }
 
@@ -129,6 +62,7 @@ async function loadDestinations() {
     initFavourites();
     populateDestinationSelect('voice-destination', destinations, d => d.name);
     populateDestinationSelect('gallery-destination', destinations, d => d.id);
+    renderJournalCompose();
   } catch (err) {
     grid.innerHTML = '<p class="loading-msg">Could not load destinations.</p>';
   }
@@ -242,25 +176,102 @@ async function toggleFav(e, id) {
 }
 
 // ── Stories ──────────────────────────────────────────
-async function loadStories() {
-  const grid = document.getElementById('storiesGrid');
-  try {
-    const res = await apiFetch('/api/stories');
-    const data = await res.json();
-    const stories = data.stories || [];
+// ── Journal ──────────────────────────────────────────
+function renderJournalCompose() {
+  const box = document.getElementById('journalComposeBox');
+  if (!box) return;
 
-    grid.innerHTML = stories.map(s => `
-      <div class="story">
-        <div class="story-avatar">${s.avatar}</div>
-        <div class="story-content">
-          <h4>${escapeHtml(s.author)} &mdash; <span>${escapeHtml(s.destination)}</span></h4>
-          <p>"${escapeHtml(s.text)}"</p>
-          <div class="stars">${'★'.repeat(s.stars)}${'☆'.repeat(Math.max(0, 5 - s.stars))}</div>
-        </div>
+  if (currentUser) {
+    box.innerHTML = `
+      <div class="journal-compose-fields">
+        <select id="journal-destination">
+          <option value="" disabled selected>Select destination</option>
+        </select>
+        <input type="text" id="journal-title" placeholder="Title (optional)" maxlength="80" />
       </div>
-    `).join('');
+      <textarea id="journal-body" placeholder="Share your travel story..." rows="4" maxlength="4000"></textarea>
+      <button type="button" class="btn submit-journal-btn" onclick="submitJournalEntry()">Post Entry</button>
+      <p class="journal-status" id="journalStatus"></p>
+    `;
+    populateDestinationSelect('journal-destination', Object.values(destinationsById), d => d.id);
+  } else {
+    box.innerHTML = `<p class="journal-login-prompt">Please <a href="auth.html">log in</a> to share your travel journal.</p>`;
+  }
+}
+
+async function loadJournal() {
+  const feed = document.getElementById('journalFeed');
+  try {
+    const res = await apiFetch('/api/journal');
+    const data = await res.json();
+    renderJournalFeed(data.entries || []);
   } catch (err) {
-    grid.innerHTML = '<p class="loading-msg">Could not load stories.</p>';
+    feed.innerHTML = '<p class="loading-msg">Could not load journal entries.</p>';
+  }
+}
+
+function renderJournalFeed(entries) {
+  const feed = document.getElementById('journalFeed');
+  if (!entries.length) {
+    feed.innerHTML = '<p class="no-entries">No journal entries yet — be the first to share your story!</p>';
+    return;
+  }
+  feed.innerHTML = entries.map(e => {
+    const timeStr = new Date(e.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+    return `
+      <div class="journal-entry">
+        ${e.mine ? `<button class="journal-delete-btn" onclick="deleteJournalEntry(event, ${e.id})" title="Delete entry">✕</button>` : ''}
+        <div class="journal-entry-header">
+          <strong>${escapeHtml(e.authorName)}</strong>
+          <span class="je-destination">${escapeHtml(e.destination)}</span>
+          <span class="je-time">${timeStr}</span>
+        </div>
+        ${e.title ? `<h4 class="journal-entry-title">${escapeHtml(e.title)}</h4>` : ''}
+        <p class="journal-entry-body">${escapeHtml(e.body)}</p>
+      </div>`;
+  }).join('');
+}
+
+async function submitJournalEntry() {
+  const destination = document.getElementById('journal-destination').value;
+  const title       = document.getElementById('journal-title').value.trim();
+  const body        = document.getElementById('journal-body').value.trim();
+  const status      = document.getElementById('journalStatus');
+
+  if (!destination) { status.textContent = 'Please select a destination.'; return; }
+  if (!body) { status.textContent = 'Please write something before posting.'; return; }
+
+  try {
+    const res = await apiFetch('/api/journal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ destination, title, body }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Could not post your entry.');
+
+    document.getElementById('journal-destination').value = '';
+    document.getElementById('journal-title').value = '';
+    document.getElementById('journal-body').value = '';
+    status.textContent = 'Your journal entry has been posted!';
+    loadJournal();
+  } catch (err) {
+    status.textContent = err.message || 'Could not post your entry.';
+  }
+}
+
+async function deleteJournalEntry(e, id) {
+  e.stopPropagation();
+  if (!confirm('Delete this journal entry? This cannot be undone.')) return;
+
+  try {
+    const res = await apiFetch(`/api/journal/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Could not delete entry.');
+    showToast('Journal entry deleted');
+    loadJournal();
+  } catch (err) {
+    showToast(err.message || 'Could not delete entry.');
   }
 }
 

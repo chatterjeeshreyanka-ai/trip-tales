@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat — Trip Tales</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="chat.css" />
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <a class="logo" href="index.html">&#9992; Trip Tales</a>
+
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html#home" onclick="closeMenu()">Home</a></li>
+      <li><a href="index.html#destinations" onclick="closeMenu()">Destinations</a></li>
+      <li><a href="index.html#journal" onclick="closeMenu()">Journal</a></li>
+      <li><a href="index.html#voice" onclick="closeMenu()">Voice Entries</a></li>
+      <li><a href="index.html#gallery" onclick="closeMenu()">Gallery</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="dark-toggle" id="darkToggle" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
+      <span id="authArea"><a href="auth.html" class="nav-auth-btn">Login / Sign Up</a></span>
+    </div>
+  </nav>
+
+  <!-- Login gate -->
+  <div class="chat-login-gate" id="chatLoginGate" style="display:none;">
+    <p>Please <a href="auth.html">log in</a> to use chat.</p>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-page" id="chatPage" style="display:none;">
+    <aside class="chat-sidebar">
+      <button class="chat-thread-btn active" id="publicThreadBtn" onclick="switchThread('public')">🌐 Public Chat</button>
+      <p class="chat-sidebar-label">Direct Messages</p>
+      <div class="chat-users-list" id="chatUsersList">
+        <p class="loading-msg">Loading...</p>
+      </div>
+    </aside>
+    <main class="chat-main">
+      <div class="chat-header" id="chatHeader">Public Chat</div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <form class="chat-input-row" id="chatForm" onsubmit="sendChatMessage(event)">
+        <input type="text" id="chatInput" placeholder="Type a message..." maxlength="500" autocomplete="off" required />
+        <button type="submit" class="btn">Send</button>
+      </form>
+    </main>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="config.js"></script>
+  <script src="nav.js"></script>
+  <script src="chat.js"></script>
+</body>
+</html>

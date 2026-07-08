@@ -131,6 +131,61 @@ app.get('/api/stories', (req, res) => {
   res.json({ stories: rows });
 });
 
+// ---- Journal ----
+app.get('/api/journal', (req, res) => {
+  const viewerUserId = req.session.userId || null;
+  const viewerIsAdmin = isAdmin(viewerUserId);
+  const rows = db.prepare('SELECT * FROM journal_entries ORDER BY id DESC').all();
+  res.json({
+    entries: rows.map(r => ({
+      id: r.id,
+      authorName: r.author_name,
+      destination: r.destination,
+      title: r.title,
+      body: r.body,
+      createdAt: r.created_at,
+      mine: r.user_id === viewerUserId || viewerIsAdmin,
+    })),
+  });
+});
+
+app.post('/api/journal', requireAuth, (req, res) => {
+  const destination = (req.body.destination || '').trim();
+  const body = (req.body.body || '').trim();
+  const title = (req.body.title || '').trim();
+  if (!destination) return res.status(400).json({ error: 'Destination is required.' });
+  if (!body) return res.status(400).json({ error: 'Please write something for your journal entry.' });
+
+  const user = db.prepare('SELECT name FROM users WHERE id = ?').get(req.session.userId);
+  const info = db.prepare(`
+    INSERT INTO journal_entries (user_id, author_name, destination, title, body)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(req.session.userId, user.name, destination, title || null, body);
+
+  res.json({
+    entry: {
+      id: info.lastInsertRowid,
+      authorName: user.name,
+      destination,
+      title: title || null,
+      body,
+      createdAt: new Date().toISOString(),
+      mine: true,
+    },
+  });
+});
+
+app.delete('/api/journal/:id', requireAuth, (req, res) => {
+  const row = db.prepare('SELECT * FROM journal_entries WHERE id = ?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Entry not found.' });
+  if (row.user_id !== req.session.userId && !isAdmin(req.session.userId)) {
+    return res.status(403).json({ error: 'You can only delete your own journal entries.' });
+  }
+
+  db.prepare('DELETE FROM journal_entries WHERE id = ?').run(row.id);
+  res.json({ ok: true });
+});
+
 // ---- Gallery ----
 function mapGalleryItem(r, viewerUserId, viewerIsAdmin) {
   const owned = r.user_id != null && r.user_id === viewerUserId;
@@ -384,6 +439,79 @@ app.post('/api/favourites/:destination', requireAuth, (req, res) => {
 
   db.prepare('INSERT INTO favourites (user_id, destination) VALUES (?, ?)').run(req.session.userId, destination);
   res.json({ favourited: true });
+});
+
+// ---- Chat ----
+function mapChatMessage(row, viewerUserId) {
+  return {
+    id: row.id,
+    senderId: row.sender_id,
+    senderName: row.sender_name,
+    body: row.body,
+    createdAt: row.created_at,
+    mine: row.sender_id === viewerUserId,
+  };
+}
+
+app.get('/api/chat/users', requireAuth, (req, res) => {
+  const rows = db.prepare('SELECT id, name FROM users WHERE id != ? ORDER BY name ASC').all(req.session.userId);
+  res.json({ users: rows });
+});
+
+app.get('/api/chat/public', requireAuth, (req, res) => {
+  const rows = db.prepare(`
+    SELECT cm.*, u.name AS sender_name FROM chat_messages cm
+    JOIN users u ON u.id = cm.sender_id
+    WHERE cm.recipient_id IS NULL
+    ORDER BY cm.id DESC LIMIT 200
+  `).all();
+  res.json({ messages: rows.reverse().map(r => mapChatMessage(r, req.session.userId)) });
+});
+
+app.post('/api/chat/public', requireAuth, (req, res) => {
+  const body = (req.body.body || '').trim();
+  if (!body) return res.status(400).json({ error: 'Message cannot be empty.' });
+
+  const info = db.prepare('INSERT INTO chat_messages (sender_id, recipient_id, body) VALUES (?, NULL, ?)')
+    .run(req.session.userId, body);
+  const user = db.prepare('SELECT name FROM users WHERE id = ?').get(req.session.userId);
+
+  res.json({
+    message: { id: info.lastInsertRowid, senderId: req.session.userId, senderName: user.name, body, createdAt: new Date().toISOString(), mine: true },
+  });
+});
+
+app.get('/api/chat/private/:userId', requireAuth, (req, res) => {
+  const otherId = Number(req.params.userId);
+  const other = db.prepare('SELECT id, name FROM users WHERE id = ?').get(otherId);
+  if (!other) return res.status(404).json({ error: 'User not found.' });
+
+  const rows = db.prepare(`
+    SELECT cm.*, u.name AS sender_name FROM chat_messages cm
+    JOIN users u ON u.id = cm.sender_id
+    WHERE (cm.sender_id = ? AND cm.recipient_id = ?) OR (cm.sender_id = ? AND cm.recipient_id = ?)
+    ORDER BY cm.id ASC LIMIT 500
+  `).all(req.session.userId, otherId, otherId, req.session.userId);
+
+  res.json({ otherUser: other, messages: rows.map(r => mapChatMessage(r, req.session.userId)) });
+});
+
+app.post('/api/chat/private/:userId', requireAuth, (req, res) => {
+  const otherId = Number(req.params.userId);
+  if (otherId === req.session.userId) return res.status(400).json({ error: 'You cannot message yourself.' });
+  const other = db.prepare('SELECT id, name FROM users WHERE id = ?').get(otherId);
+  if (!other) return res.status(404).json({ error: 'User not found.' });
+
+  const body = (req.body.body || '').trim();
+  if (!body) return res.status(400).json({ error: 'Message cannot be empty.' });
+
+  const info = db.prepare('INSERT INTO chat_messages (sender_id, recipient_id, body) VALUES (?, ?, ?)')
+    .run(req.session.userId, otherId, body);
+  const user = db.prepare('SELECT name FROM users WHERE id = ?').get(req.session.userId);
+
+  res.json({
+    message: { id: info.lastInsertRowid, senderId: req.session.userId, senderName: user.name, body, createdAt: new Date().toISOString(), mine: true },
+  });
 });
 
 app.use('/uploads', express.static(UPLOAD_DIR));

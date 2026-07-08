@@ -22,9 +22,10 @@
     <ul class="nav-links" id="navLinks">
       <li><a href="#home" onclick="closeMenu()">Home</a></li>
       <li><a href="#destinations" onclick="closeMenu()">Destinations</a></li>
-      <li><a href="#stories" onclick="closeMenu()">Stories</a></li>
+      <li><a href="#journal" onclick="closeMenu()">Journal</a></li>
       <li><a href="#voice" onclick="closeMenu()">Voice Entries</a></li>
       <li><a href="#gallery" onclick="closeMenu()">Gallery</a></li>
+      <li><a href="chat.html">Chat</a></li>
       <li><a href="#contact" onclick="closeMenu()">Contact</a></li>
     </ul>
 
@@ -58,12 +59,15 @@
     </div>
   </section>
 
-  <!-- Stories -->
-  <section class="section stories-section" id="stories">
-    <h2 class="section-title">Travel Stories</h2>
-    <p class="section-sub">Real experiences from real travellers</p>
-    <div class="stories" id="storiesGrid">
-      <p class="loading-msg">Loading stories...</p>
+  <!-- Journal -->
+  <section class="section journal-section" id="journal">
+    <h2 class="section-title">Travel Journal</h2>
+    <p class="section-sub">Real stories, written by our community</p>
+
+    <div class="journal-compose-box" id="journalComposeBox"></div>
+
+    <div class="journal-feed" id="journalFeed">
+      <p class="loading-msg">Loading journal entries...</p>
     </div>
   </section>
 
@@ -171,6 +175,7 @@
   <div class="toast" id="toast"></div>
 
   <script src="config.js"></script>
+  <script src="nav.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

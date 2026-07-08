@@ -1,14 +1,5 @@
 document.addEventListener('DOMContentLoaded', redirectIfLoggedIn);
 
-function toggleMenu() {
-  document.getElementById('navLinks').classList.toggle('open');
-  document.getElementById('hamburger').classList.toggle('open');
-}
-function closeMenu() {
-  document.getElementById('navLinks').classList.remove('open');
-  document.getElementById('hamburger').classList.remove('open');
-}
-
 async function redirectIfLoggedIn() {
   try {
     const res = await apiFetch('/api/auth/me');
