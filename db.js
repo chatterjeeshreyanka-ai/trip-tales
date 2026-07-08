@@ -132,6 +132,14 @@ const destinationSeed = [
     cardDesc: 'Rolling tea gardens, misty peaks, and the UNESCO toy train — the Queen of Hill Stations, crowned by views of Kangchenjunga.',
     fullDesc: 'Perched in the Himalayan foothills, Darjeeling is famous worldwide for its aromatic tea gardens, the heritage narrow-gauge Darjeeling Himalayan Railway ("Toy Train"), and sweeping views of Kangchenjunga, the world\'s third-highest peak, best seen at sunrise from Tiger Hill.',
     bestTime: 'March – May, Oct – Dec', type: 'Mountains · Culture', idealStay: '3–4 days', tags: ['Mountains', 'Culture'] },
+  { id: 'puri', name: 'Puri, India', emoji: '🛕', bg: '#fff59d',
+    cardDesc: 'Home to the sacred Jagannath Temple and the spectacular Rath Yatra chariot festival, with golden beaches along the Bay of Bengal.',
+    fullDesc: "One of Hinduism's Char Dham pilgrimage sites, Puri is anchored by the magnificent Jagannath Temple and comes alive each year during the thunderous Rath Yatra chariot festival. Beyond its spiritual pull, Puri's golden beach on the Bay of Bengal offers a relaxed coastal counterpoint.",
+    bestTime: 'October – February', type: 'Spiritual · Beach', idealStay: '2–3 days', tags: ['Spiritual', 'Beach'] },
+  { id: 'mayapur', name: 'Mayapur, India', emoji: '🪷', bg: '#ce93d8',
+    cardDesc: 'The spiritual headquarters of the Hare Krishna movement, crowned by the awe-inspiring Chandrodaya Mandir on the banks of the Ganges.',
+    fullDesc: 'Mayapur is revered as the birthplace of Sri Chaitanya Mahaprabhu and serves as the global headquarters of ISKCON. Pilgrims and visitors are drawn to the soaring Chandrodaya Mandir, serene riverside ghats, and the town\'s deeply devotional atmosphere.',
+    bestTime: 'November – March', type: 'Spiritual · Culture', idealStay: '1–2 days', tags: ['Spiritual', 'Culture'] },
 ];
 
 const storySeed = [
@@ -141,6 +149,8 @@ const storySeed = [
   { author: 'Karthik V.', destination: 'Vizag, India', avatar: '👨‍🦱', text: "Vizag surprised me completely — the RK Beach at sunset, the Araku Valley coffee, the submarine museum. It's a destination that has it all!", stars: 5 },
   { author: 'Debjani M.', destination: 'Purulia, India', avatar: '👩‍🎨', text: "Watching a live Chhau performance under the open sky in Purulia was unlike anything I'd seen — the masks, the drums, the sheer athleticism. It felt ancient and electric at once.", stars: 5 },
   { author: 'Arjun T.', destination: 'Darjeeling, India', avatar: '👨‍🦰', text: 'Waking up at 4am for the Tiger Hill sunrise over Kangchenjunga was worth every shiver. A cup of fresh Darjeeling tea on the foggy toy train ride afterward sealed it as my favourite hill trip ever.', stars: 5 },
+  { author: 'Sanjana K.', destination: 'Puri, India', avatar: '👩‍🦳', text: 'Watching the Rath Yatra chariots roll through Puri amid thousands of chanting devotees was overwhelming in the best way — pure devotion in motion.', stars: 5 },
+  { author: 'Gaurav D.', destination: 'Mayapur, India', avatar: '👨‍🦲', text: 'The evening aarti at the Chandrodaya Mandir in Mayapur, with the Ganges flowing right beside it, gave me a sense of peace I still carry with me.', stars: 5 },
 ];
 
 const gallerySeed = [
@@ -162,6 +172,10 @@ const gallerySeed = [
   { place: 'purulia', caption: 'Ajodhya Hills', emoji: '🏞️', gradient: '135deg,#ffccbc,#d84315', large: 1 },
   { place: 'darjeeling', caption: 'Tea Gardens', emoji: '🍃', gradient: '135deg,#b2dfdb,#00796b', large: 1 },
   { place: 'darjeeling', caption: 'Toy Train', emoji: '🚂', gradient: '135deg,#c8e6c9,#33691e', large: 0 },
+  { place: 'puri', caption: 'Jagannath Temple', emoji: '🛕', gradient: '135deg,#fff59d,#fbc02d', large: 0 },
+  { place: 'puri', caption: 'Puri Beach', emoji: '🌊', gradient: '135deg,#ffe082,#ff8f00', large: 1 },
+  { place: 'mayapur', caption: 'Chandrodaya Mandir', emoji: '🪷', gradient: '135deg,#ce93d8,#8e24aa', large: 1 },
+  { place: 'mayapur', caption: 'Ganges Ghat', emoji: '🛶', gradient: '135deg,#e1bee7,#6a1b9a', large: 0 },
 ];
 
 // INSERT OR IGNORE (keyed on the id primary key) so newly added seed entries
