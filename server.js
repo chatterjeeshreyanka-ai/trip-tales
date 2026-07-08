@@ -15,6 +15,8 @@ if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://creative-palmier-f29a9c.netlify.app';
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'chatterjeeshreyanka@gmail.com')
+  .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 
 const app = express();
 app.set('trust proxy', 1);
@@ -52,6 +54,12 @@ const imageUpload = multer({
 
 function publicUser(user) {
   return { id: user.id, name: user.name, email: user.email };
+}
+
+function isAdmin(userId) {
+  if (!userId) return false;
+  const user = db.prepare('SELECT email FROM users WHERE id = ?').get(userId);
+  return !!user && ADMIN_EMAILS.includes(user.email.toLowerCase());
 }
 
 function requireAuth(req, res, next) {
@@ -124,7 +132,8 @@ app.get('/api/stories', (req, res) => {
 });
 
 // ---- Gallery ----
-function mapGalleryItem(r, viewerUserId) {
+function mapGalleryItem(r, viewerUserId, viewerIsAdmin) {
+  const owned = r.user_id != null && r.user_id === viewerUserId;
   return {
     id: r.id,
     place: r.place,
@@ -134,13 +143,15 @@ function mapGalleryItem(r, viewerUserId) {
     large: !!r.large,
     imageUrl: r.image_filename ? `/uploads/${r.image_filename}` : null,
     uploaderName: r.uploader_name,
-    mine: r.user_id != null && r.user_id === viewerUserId,
+    mine: owned || (viewerIsAdmin && !!r.image_filename),
   };
 }
 
 app.get('/api/gallery', (req, res) => {
+  const viewerUserId = req.session.userId || null;
+  const viewerIsAdmin = isAdmin(viewerUserId);
   const rows = db.prepare('SELECT * FROM gallery_items ORDER BY id ASC').all();
-  res.json({ items: rows.map(r => mapGalleryItem(r, req.session.userId || null)) });
+  res.json({ items: rows.map(r => mapGalleryItem(r, viewerUserId, viewerIsAdmin)) });
 });
 
 app.post('/api/gallery', imageUpload.single('image'), (req, res) => {
@@ -191,15 +202,17 @@ app.delete('/api/gallery/:id', (req, res) => {
   if (!row) return res.status(404).json({ error: 'Photo not found.' });
   if (!row.image_filename) return res.status(403).json({ error: 'This item cannot be deleted.' });
 
-  if (row.user_id != null) {
-    if (req.session.userId !== row.user_id) {
-      return res.status(403).json({ error: 'You can only delete your own photos.' });
-    }
-  } else {
-    const token = (req.body && req.body.deleteToken) || '';
-    const tokenHash = token ? crypto.createHash('sha256').update(token).digest('hex') : '';
-    if (!token || tokenHash !== row.delete_token_hash) {
-      return res.status(403).json({ error: 'You can only delete photos you uploaded.' });
+  if (!isAdmin(req.session.userId)) {
+    if (row.user_id != null) {
+      if (req.session.userId !== row.user_id) {
+        return res.status(403).json({ error: 'You can only delete your own photos.' });
+      }
+    } else {
+      const token = (req.body && req.body.deleteToken) || '';
+      const tokenHash = token ? crypto.createHash('sha256').update(token).digest('hex') : '';
+      if (!token || tokenHash !== row.delete_token_hash) {
+        return res.status(403).json({ error: 'You can only delete photos you uploaded.' });
+      }
     }
   }
 

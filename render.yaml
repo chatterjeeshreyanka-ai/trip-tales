@@ -18,6 +18,8 @@ services:
         sync: false
       - key: RESEND_FROM
         value: "Trip Tales <onboarding@resend.dev>"
+      - key: ADMIN_EMAILS
+        value: chatterjeeshreyanka@gmail.com
     disk:
       name: trip-tales-data
       mountPath: /data
