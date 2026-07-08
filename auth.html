@@ -12,11 +12,16 @@
   <!-- Navbar -->
   <nav class="navbar">
     <a class="logo" href="index.html">&#9992; Trip Tales</a>
-    <ul class="nav-links">
-      <li><a href="index.html#home">Home</a></li>
-      <li><a href="index.html#destinations">Destinations</a></li>
-      <li><a href="index.html#stories">Stories</a></li>
-      <li><a href="index.html#voice">Voice Entries</a></li>
+
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html#home" onclick="closeMenu()">Home</a></li>
+      <li><a href="index.html#destinations" onclick="closeMenu()">Destinations</a></li>
+      <li><a href="index.html#stories" onclick="closeMenu()">Stories</a></li>
+      <li><a href="index.html#voice" onclick="closeMenu()">Voice Entries</a></li>
     </ul>
   </nav>
 
