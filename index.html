@@ -30,7 +30,7 @@
 
     <div class="nav-actions">
       <button class="dark-toggle" id="darkToggle" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
-      <a href="auth.html" class="nav-auth-btn">Login / Sign Up</a>
+      <span id="authArea"><a href="auth.html" class="nav-auth-btn">Login / Sign Up</a></span>
     </div>
   </nav>
 
@@ -54,84 +54,7 @@
     </div>
 
     <div class="cards" id="cardsGrid">
-
-      <div class="card fade-in" data-name="haridwar" onclick="openDestModal('haridwar')">
-        <button class="fav-btn" onclick="toggleFav(event,'haridwar')" title="Favourite">♡</button>
-        <div class="card-img" style="background:#ffe0b2;">🕉️</div>
-        <div class="card-body">
-          <h3>Haridwar, India</h3>
-          <p>One of the holiest cities in India, where the Ganges descends from the Himalayas — witness the divine Ganga Aarti at dusk.</p>
-          <span class="tag">Spiritual</span>
-          <span class="tag">Culture</span>
-        </div>
-      </div>
-
-      <div class="card fade-in" data-name="rishikesh" onclick="openDestModal('rishikesh')">
-        <button class="fav-btn" onclick="toggleFav(event,'rishikesh')" title="Favourite">♡</button>
-        <div class="card-img" style="background:#c8e6c9;">🏞️</div>
-        <div class="card-body">
-          <h3>Rishikesh, India</h3>
-          <p>The yoga capital of the world, nestled in the Himalayan foothills with thrilling river rafting on the Ganges.</p>
-          <span class="tag">Adventure</span>
-          <span class="tag">Wellness</span>
-        </div>
-      </div>
-
-      <div class="card fade-in" data-name="varanasi" onclick="openDestModal('varanasi')">
-        <button class="fav-btn" onclick="toggleFav(event,'varanasi')" title="Favourite">♡</button>
-        <div class="card-img" style="background:#ffe8cc;">🪔</div>
-        <div class="card-body">
-          <h3>Varanasi, India</h3>
-          <p>The eternal city on the Ganges — ancient ghats, glowing diyas, and centuries of spiritual heritage await.</p>
-          <span class="tag">Spiritual</span>
-          <span class="tag">History</span>
-        </div>
-      </div>
-
-      <div class="card fade-in" data-name="vizag" onclick="openDestModal('vizag')">
-        <button class="fav-btn" onclick="toggleFav(event,'vizag')" title="Favourite">♡</button>
-        <div class="card-img" style="background:#b3e5fc;">🌊</div>
-        <div class="card-body">
-          <h3>Vizag, India</h3>
-          <p>Visakhapatnam's pristine beaches, scenic valleys of Araku, and vibrant coastal charm make it a hidden gem of Andhra Pradesh.</p>
-          <span class="tag">Beach</span>
-          <span class="tag">Nature</span>
-        </div>
-      </div>
-
-      <div class="card fade-in" data-name="lucknow" onclick="openDestModal('lucknow')">
-        <button class="fav-btn" onclick="toggleFav(event,'lucknow')" title="Favourite">♡</button>
-        <div class="card-img" style="background:#f8bbd0;">🍢</div>
-        <div class="card-body">
-          <h3>Lucknow, India</h3>
-          <p>The city of Nawabs — famous for its Mughal architecture, fragrant biryanis, delicate chikankari craft, and gracious tehzeeb.</p>
-          <span class="tag">Culture</span>
-          <span class="tag">Food</span>
-        </div>
-      </div>
-
-      <div class="card fade-in" data-name="agra" onclick="openDestModal('agra')">
-        <button class="fav-btn" onclick="toggleFav(event,'agra')" title="Favourite">♡</button>
-        <div class="card-img" style="background:#e1f5fe;">🕌</div>
-        <div class="card-body">
-          <h3>Agra, India</h3>
-          <p>Home to the iconic Taj Mahal — a UNESCO World Heritage Site and an eternal symbol of love set on the banks of the Yamuna.</p>
-          <span class="tag">History</span>
-          <span class="tag">Culture</span>
-        </div>
-      </div>
-
-      <div class="card fade-in" data-name="mussoorie" onclick="openDestModal('mussoorie')">
-        <button class="fav-btn" onclick="toggleFav(event,'mussoorie')" title="Favourite">♡</button>
-        <div class="card-img" style="background:#dcedc8;">⛰️</div>
-        <div class="card-body">
-          <h3>Mussoorie, India</h3>
-          <p>The Queen of Hills — misty Himalayan valleys, cascading Kempty Falls, and a charming Mall Road make it a perfect mountain escape.</p>
-          <span class="tag">Mountains</span>
-          <span class="tag">Nature</span>
-        </div>
-      </div>
-
+      <p class="loading-msg">Loading destinations...</p>
     </div>
   </section>
 
@@ -139,44 +62,8 @@
   <section class="section stories-section" id="stories">
     <h2 class="section-title">Travel Stories</h2>
     <p class="section-sub">Real experiences from real travellers</p>
-    <div class="stories">
-
-      <div class="story">
-        <div class="story-avatar">👩‍🦱</div>
-        <div class="story-content">
-          <h4>Ananya S. &mdash; <span>Haridwar, India</span></h4>
-          <p>"Watching the Ganga Aarti at Har Ki Pauri was the most soul-stirring experience of my life. The chants, the flames, the river — pure divinity."</p>
-          <div class="stars">★★★★★</div>
-        </div>
-      </div>
-
-      <div class="story">
-        <div class="story-avatar">👨‍🦳</div>
-        <div class="story-content">
-          <h4>Rohan M. &mdash; <span>Rishikesh, India</span></h4>
-          <p>"River rafting on the Ganges in Rishikesh was an absolute thrill! And the evenings doing yoga by the river brought a peace I never knew I needed."</p>
-          <div class="stars">★★★★★</div>
-        </div>
-      </div>
-
-      <div class="story">
-        <div class="story-avatar">👩‍🦰</div>
-        <div class="story-content">
-          <h4>Priya R. &mdash; <span>Varanasi, India</span></h4>
-          <p>"Varanasi is like no place on earth. The ancient ghats at sunrise, the floating diyas, the sounds of prayers — it touches something deep in your soul."</p>
-          <div class="stars">★★★★★</div>
-        </div>
-      </div>
-
-      <div class="story">
-        <div class="story-avatar">👨‍🦱</div>
-        <div class="story-content">
-          <h4>Karthik V. &mdash; <span>Vizag, India</span></h4>
-          <p>"Vizag surprised me completely — the RK Beach at sunset, the Araku Valley coffee, the submarine museum. It's a destination that has it all!"</p>
-          <div class="stars">★★★★★</div>
-        </div>
-      </div>
-
+    <div class="stories" id="storiesGrid">
+      <p class="loading-msg">Loading stories...</p>
     </div>
   </section>
 
@@ -237,147 +124,7 @@
 
     <!-- Grid -->
     <div class="gallery-grid" id="galleryGrid">
-
-      <div class="gallery-item" data-place="haridwar">
-        <div class="gallery-thumb" style="background:linear-gradient(135deg,#ffe0b2,#ffb74d);">
-          <span>🕉️</span>
-        </div>
-        <div class="gallery-overlay">
-          <p>Ganga Aarti</p>
-          <span>Haridwar</span>
-        </div>
-      </div>
-
-      <div class="gallery-item large" data-place="haridwar">
-        <div class="gallery-thumb" style="background:linear-gradient(135deg,#ffcc80,#ff8a65);">
-          <span>🌊</span>
-        </div>
-        <div class="gallery-overlay">
-          <p>Har Ki Pauri</p>
-          <span>Haridwar</span>
-        </div>
-      </div>
-
-      <div class="gallery-item" data-place="rishikesh">
-        <div class="gallery-thumb" style="background:linear-gradient(135deg,#c8e6c9,#66bb6a);">
-          <span>🏞️</span>
-        </div>
-        <div class="gallery-overlay">
-          <p>River Rafting</p>
-          <span>Rishikesh</span>
-        </div>
-      </div>
-
-      <div class="gallery-item" data-place="rishikesh">
-        <div class="gallery-thumb" style="background:linear-gradient(135deg,#a5d6a7,#43a047);">
-          <span>🧘</span>
-        </div>
-        <div class="gallery-overlay">
-          <p>Yoga Retreat</p>
-          <span>Rishikesh</span>
-        </div>
-      </div>
-
-      <div class="gallery-item large" data-place="varanasi">
-        <div class="gallery-thumb" style="background:linear-gradient(135deg,#ffe8cc,#ffab40);">
-          <span>🪔</span>
-        </div>
-        <div class="gallery-overlay">
-          <p>Evening Aarti</p>
-          <span>Varanasi</span>
-        </div>
-      </div>
-
-      <div class="gallery-item" data-place="varanasi">
-        <div class="gallery-thumb" style="background:linear-gradient(135deg,#ffd180,#ff6d00);">
-          <span>🛶</span>
-        </div>
-        <div class="gallery-overlay">
-          <p>Boat Ride on Ganges</p>
-          <span>Varanasi</span>
-        </div>
-      </div>
-
-      <div class="gallery-item" data-place="vizag">
-        <div class="gallery-thumb" style="background:linear-gradient(135deg,#b3e5fc,#0288d1);">
-          <span>🌊</span>
-        </div>
-        <div class="gallery-overlay">
-          <p>RK Beach</p>
-          <span>Vizag</span>
-        </div>
-      </div>
-
-      <div class="gallery-item large" data-place="vizag">
-        <div class="gallery-thumb" style="background:linear-gradient(135deg,#81d4fa,#0277bd);">
-          <span>🐚</span>
-        </div>
-        <div class="gallery-overlay">
-          <p>Araku Valley</p>
-          <span>Vizag</span>
-        </div>
-      </div>
-
-      <div class="gallery-item" data-place="lucknow">
-        <div class="gallery-thumb" style="background:linear-gradient(135deg,#f8bbd0,#e91e63);">
-          <span>🏰</span>
-        </div>
-        <div class="gallery-overlay">
-          <p>Bara Imambara</p>
-          <span>Lucknow</span>
-        </div>
-      </div>
-
-      <div class="gallery-item" data-place="lucknow">
-        <div class="gallery-thumb" style="background:linear-gradient(135deg,#f48fb1,#c2185b);">
-          <span>🍢</span>
-        </div>
-        <div class="gallery-overlay">
-          <p>Tunday Kababs</p>
-          <span>Lucknow</span>
-        </div>
-      </div>
-
-      <div class="gallery-item large" data-place="agra">
-        <div class="gallery-thumb" style="background:linear-gradient(135deg,#e1f5fe,#0288d1);">
-          <span>🕌</span>
-        </div>
-        <div class="gallery-overlay">
-          <p>Taj Mahal at Sunrise</p>
-          <span>Agra</span>
-        </div>
-      </div>
-
-      <div class="gallery-item" data-place="agra">
-        <div class="gallery-thumb" style="background:linear-gradient(135deg,#bbdefb,#1976d2);">
-          <span>🏯</span>
-        </div>
-        <div class="gallery-overlay">
-          <p>Agra Fort</p>
-          <span>Agra</span>
-        </div>
-      </div>
-
-      <div class="gallery-item" data-place="mussoorie">
-        <div class="gallery-thumb" style="background:linear-gradient(135deg,#dcedc8,#558b2f);">
-          <span>⛰️</span>
-        </div>
-        <div class="gallery-overlay">
-          <p>Mall Road</p>
-          <span>Mussoorie</span>
-        </div>
-      </div>
-
-      <div class="gallery-item large" data-place="mussoorie">
-        <div class="gallery-thumb" style="background:linear-gradient(135deg,#c5e1a5,#33691e);">
-          <span>💧</span>
-        </div>
-        <div class="gallery-overlay">
-          <p>Kempty Falls</p>
-          <span>Mussoorie</span>
-        </div>
-      </div>
-
+      <p class="loading-msg">Loading gallery...</p>
     </div>
 
     <!-- Lightbox -->

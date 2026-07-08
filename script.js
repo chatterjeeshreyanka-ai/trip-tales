@@ -17,9 +17,16 @@ const fadeObserver = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.1 });
 
-window.addEventListener('DOMContentLoaded', () => {
+function observeFadeIns() {
   document.querySelectorAll('.fade-in').forEach(el => fadeObserver.observe(el));
-  initFavourites();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  loadSession().then(initFavourites);
+  loadDestinations();
+  loadStories();
+  loadGallery();
+  loadVoiceEntries();
 });
 
 // ── Dark mode ────────────────────────────────────────
@@ -56,20 +63,161 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2600);
 }
 
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Session / auth ───────────────────────────────────
+let currentUser = null;
+
+async function loadSession() {
+  try {
+    const res = await fetch('/api/auth/me');
+    const data = await res.json();
+    currentUser = data.user;
+  } catch (err) {
+    currentUser = null;
+  }
+  renderAuthArea();
+}
+
+function renderAuthArea() {
+  const area = document.getElementById('authArea');
+  if (!area) return;
+  if (currentUser) {
+    area.innerHTML = `
+      <span class="nav-user">Hi, ${escapeHtml(currentUser.name.split(' ')[0])}</span>
+      <button type="button" class="nav-auth-btn" onclick="logout()">Logout</button>
+    `;
+  } else {
+    area.innerHTML = `<a href="auth.html" class="nav-auth-btn">Login / Sign Up</a>`;
+  }
+}
+
+async function logout() {
+  await fetch('/api/auth/logout', { method: 'POST' });
+  currentUser = null;
+  renderAuthArea();
+  initFavourites();
+  showToast('Logged out');
+}
+
+// ── Destinations ──────────────────────────────────────
+let destinationsById = {};
+
+async function loadDestinations() {
+  const grid = document.getElementById('cardsGrid');
+  try {
+    const res = await fetch('/api/destinations');
+    const data = await res.json();
+    const destinations = data.destinations || [];
+    destinationsById = Object.fromEntries(destinations.map(d => [d.id, d]));
+
+    grid.innerHTML = destinations.map(d => `
+      <div class="card fade-in" data-name="${d.id}" onclick="openDestModal('${d.id}')">
+        <button class="fav-btn" onclick="toggleFav(event,'${d.id}')" title="Favourite">♡</button>
+        <div class="card-img" style="background:${d.bg};">${d.emoji}</div>
+        <div class="card-body">
+          <h3>${escapeHtml(d.name)}</h3>
+          <p>${escapeHtml(d.cardDesc)}</p>
+          ${d.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    observeFadeIns();
+    initFavourites();
+  } catch (err) {
+    grid.innerHTML = '<p class="loading-msg">Could not load destinations.</p>';
+  }
+}
+
+function openDestModal(id) {
+  const d = destinationsById[id];
+  if (!d) return;
+  const box = document.getElementById('destModalBox');
+  box.innerHTML = `
+    <div class="dm-header" style="background:${d.bg};">
+      <span>${d.emoji}</span>
+      <button class="dm-close" onclick="closeDestModal()">✕</button>
+    </div>
+    <div class="dm-body">
+      <h2>${escapeHtml(d.name)}</h2>
+      <div class="dm-tags">${d.type.split('·').map(t=>`<span class="tag">${escapeHtml(t.trim())}</span>`).join('')}</div>
+      <p>${escapeHtml(d.fullDesc)}</p>
+      <div class="dm-info">
+        <span>📅 Best time: <strong>${escapeHtml(d.bestTime)}</strong></span>
+        <span>🕐 Ideal stay: <strong>${escapeHtml(d.idealStay)}</strong></span>
+      </div>
+    </div>`;
+  document.getElementById('destModal').classList.add('open');
+}
+
+function closeDestModal(e) {
+  if (!e || e.target === document.getElementById('destModal')) {
+    document.getElementById('destModal').classList.remove('open');
+  }
+}
+
+// ── Destination search ───────────────────────────────
+function searchDestinations(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('#cardsGrid .card').forEach(card => {
+    const name = card.dataset.name || '';
+    const text = card.innerText.toLowerCase();
+    card.style.display = (name.includes(q) || text.includes(q)) ? '' : 'none';
+  });
+}
+
 // ── Favourites ───────────────────────────────────────
-function initFavourites() {
-  const favs = JSON.parse(localStorage.getItem('tt-favs') || '[]');
+async function initFavourites() {
+  document.querySelectorAll('.fav-btn').forEach(btn => {
+    btn.textContent = '♡';
+    btn.classList.remove('active');
+  });
+
+  let favs = [];
+  if (currentUser) {
+    try {
+      const res = await fetch('/api/favourites');
+      const data = await res.json();
+      favs = data.favourites || [];
+    } catch (err) {
+      favs = [];
+    }
+  } else {
+    favs = JSON.parse(localStorage.getItem('tt-favs') || '[]');
+  }
+
   favs.forEach(id => {
-    const btn = document.querySelector(`.fav-btn[onclick*="${id}"]`);
+    const btn = document.querySelector(`.fav-btn[onclick*="'${id}'"]`);
     if (btn) { btn.textContent = '♥'; btn.classList.add('active'); }
   });
 }
 
-function toggleFav(e, id) {
+async function toggleFav(e, id) {
   e.stopPropagation();
-  const btn  = e.currentTarget;
+  const btn = e.currentTarget;
+
+  if (currentUser) {
+    try {
+      const res = await fetch(`/api/favourites/${encodeURIComponent(id)}`, { method: 'POST' });
+      const data = await res.json();
+      if (data.favourited) {
+        btn.textContent = '♥'; btn.classList.add('active');
+        showToast('Added to favourites ♥');
+      } else {
+        btn.textContent = '♡'; btn.classList.remove('active');
+        showToast('Removed from favourites');
+      }
+    } catch (err) {
+      showToast('Could not update favourites');
+    }
+    return;
+  }
+
   const favs = JSON.parse(localStorage.getItem('tt-favs') || '[]');
-  const idx  = favs.indexOf(id);
+  const idx = favs.indexOf(id);
   if (idx === -1) {
     favs.push(id);
     btn.textContent = '♥';
@@ -84,69 +232,62 @@ function toggleFav(e, id) {
   localStorage.setItem('tt-favs', JSON.stringify(favs));
 }
 
-// ── Destination search ───────────────────────────────
-function searchDestinations(query) {
-  const q = query.toLowerCase();
-  document.querySelectorAll('#cardsGrid .card').forEach(card => {
-    const name = card.dataset.name || '';
-    const text = card.innerText.toLowerCase();
-    card.style.display = (name.includes(q) || text.includes(q)) ? '' : 'none';
-  });
-}
+// ── Stories ──────────────────────────────────────────
+async function loadStories() {
+  const grid = document.getElementById('storiesGrid');
+  try {
+    const res = await fetch('/api/stories');
+    const data = await res.json();
+    const stories = data.stories || [];
 
-// ── Destination detail modal ─────────────────────────
-const DEST_DATA = {
-  haridwar:  { emoji:'🕉️', bg:'#ffe0b2', name:'Haridwar, India',
-    desc:'One of the seven holiest cities in Hinduism, Haridwar sits at the point where the Ganges leaves the Himalayan foothills. The evening Ganga Aarti at Har Ki Pauri is a mesmerising ritual of fire, chants, and flowing diyas.',
-    best:'October – March', type:'Spiritual · Pilgrimage', time:'2–3 days' },
-  rishikesh: { emoji:'🏞️', bg:'#c8e6c9', name:'Rishikesh, India',
-    desc:'Nestled between forested hills and the turquoise Ganges, Rishikesh is the yoga capital of the world. It offers thrilling white-water rafting, bungee jumping, suspension bridges, and tranquil ashrams side by side.',
-    best:'September – April', type:'Adventure · Wellness', time:'3–4 days' },
-  varanasi:  { emoji:'🪔', bg:'#ffe8cc', name:'Varanasi, India',
-    desc:'One of the oldest continuously inhabited cities on earth. The ancient ghats, dawn boat rides on the Ganges, and the hypnotic nightly Aarti create an experience unlike anywhere else in the world.',
-    best:'October – March', type:'Spiritual · History', time:'2–3 days' },
-  vizag:     { emoji:'🌊', bg:'#b3e5fc', name:'Vizag, India',
-    desc:'Visakhapatnam blends mountains, beaches, and city life. Visit the submarine museum, relax on Rushikonda Beach, and take a scenic train to the misty Araku Valley coffee estates.',
-    best:'October – February', type:'Beach · Nature', time:'3–5 days' },
-  lucknow:   { emoji:'🍢', bg:'#f8bbd0', name:'Lucknow, India',
-    desc:'The city of Nawabs carries an unparalleled grace. Explore the Bara Imambara labyrinth, savour world-famous Tunday Kababs, and browse the intricate chikankari embroidery markets.',
-    best:'November – February', type:'Culture · Food', time:'2–3 days' },
-  agra:      { emoji:'🕌', bg:'#e1f5fe', name:'Agra, India',
-    desc:'Home to the Taj Mahal — a UNESCO World Heritage marvel built by Emperor Shah Jahan. Beyond the Taj, Agra Fort and Fatehpur Sikri reveal layers of Mughal grandeur.',
-    best:'October – March', type:'History · Architecture', time:'1–2 days' },
-  mussoorie: { emoji:'⛰️', bg:'#dcedc8', name:'Mussoorie, India',
-    desc:'The Queen of Hills offers panoramic Himalayan views, colonial-era charm on Mall Road, and the roar of Kempty Falls. A perfect escape from the summer plains.',
-    best:'March – June, Sept – Nov', type:'Mountains · Nature', time:'2–3 days' },
-};
-
-function openDestModal(id) {
-  const d   = DEST_DATA[id];
-  if (!d) return;
-  const box = document.getElementById('destModalBox');
-  box.innerHTML = `
-    <div class="dm-header" style="background:${d.bg};">
-      <span>${d.emoji}</span>
-      <button class="dm-close" onclick="closeDestModal()">✕</button>
-    </div>
-    <div class="dm-body">
-      <h2>${d.name}</h2>
-      <div class="dm-tags">${d.type.split('·').map(t=>`<span class="tag">${t.trim()}</span>`).join('')}</div>
-      <p>${d.desc}</p>
-      <div class="dm-info">
-        <span>📅 Best time: <strong>${d.best}</strong></span>
-        <span>🕐 Ideal stay: <strong>${d.time}</strong></span>
+    grid.innerHTML = stories.map(s => `
+      <div class="story">
+        <div class="story-avatar">${s.avatar}</div>
+        <div class="story-content">
+          <h4>${escapeHtml(s.author)} &mdash; <span>${escapeHtml(s.destination)}</span></h4>
+          <p>"${escapeHtml(s.text)}"</p>
+          <div class="stars">${'★'.repeat(s.stars)}${'☆'.repeat(Math.max(0, 5 - s.stars))}</div>
+        </div>
       </div>
-    </div>`;
-  document.getElementById('destModal').classList.add('open');
-}
-
-function closeDestModal(e) {
-  if (!e || e.target === document.getElementById('destModal')) {
-    document.getElementById('destModal').classList.remove('open');
+    `).join('');
+  } catch (err) {
+    grid.innerHTML = '<p class="loading-msg">Could not load stories.</p>';
   }
 }
 
-// Gallery filter
+// ── Gallery ──────────────────────────────────────────
+async function loadGallery() {
+  const grid = document.getElementById('galleryGrid');
+  try {
+    const res = await fetch('/api/gallery');
+    const data = await res.json();
+    const items = data.items || [];
+
+    grid.innerHTML = items.map(item => `
+      <div class="gallery-item${item.large ? ' large' : ''}" data-place="${item.place}">
+        <div class="gallery-thumb" style="background:linear-gradient(${item.gradient});">
+          <span>${item.emoji}</span>
+        </div>
+        <div class="gallery-overlay">
+          <p>${escapeHtml(item.caption)}</p>
+          <span>${escapeHtml(item.place.charAt(0).toUpperCase() + item.place.slice(1))}</span>
+        </div>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.gallery-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const thumbHtml = item.querySelector('.gallery-thumb').outerHTML;
+        const caption   = item.querySelector('.gallery-overlay p').textContent
+                        + ' — ' + item.querySelector('.gallery-overlay span').textContent;
+        openLightbox(thumbHtml, caption);
+      });
+    });
+  } catch (err) {
+    grid.innerHTML = '<p class="loading-msg">Could not load gallery.</p>';
+  }
+}
+
 function filterGallery(place, btn) {
   document.querySelectorAll('.gf-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -160,7 +301,6 @@ function filterGallery(place, btn) {
   });
 }
 
-// Lightbox
 function openLightbox(thumbHtml, caption) {
   const lb = document.getElementById('lightbox');
   document.getElementById('lightboxThumb').innerHTML = thumbHtml;
@@ -172,22 +312,25 @@ function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.gallery-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const thumbHtml = item.querySelector('.gallery-thumb').outerHTML;
-      const caption   = item.querySelector('.gallery-overlay p').textContent
-                      + ' — ' + item.querySelector('.gallery-overlay span').textContent;
-      openLightbox(thumbHtml, caption);
-    });
-  });
-});
-
-// Newsletter
-function handleSubscribe(event) {
+// ── Newsletter ───────────────────────────────────────
+async function handleSubscribe(event) {
   event.preventDefault();
-  const msg = document.getElementById('confirm-msg');
-  msg.textContent = 'Thanks for subscribing! Adventure awaits. ✈️';
+  const form  = event.target;
+  const email = form.querySelector('input[type="email"]').value.trim();
+  const msg   = document.getElementById('confirm-msg');
+
+  try {
+    const res = await fetch('/api/newsletter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    msg.textContent = data.message || (res.ok ? 'Subscribed!' : 'Something went wrong.');
+    if (res.ok) form.reset();
+  } catch (err) {
+    msg.textContent = 'Could not subscribe right now. Please try again later.';
+  }
 }
 
 // Smooth scroll
@@ -199,7 +342,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   });
 });
 
-// Voice Recorder
+// ── Voice Recorder ───────────────────────────────────
 let mediaRecorder = null;
 let audioChunks = [];
 let recordedBlob = null;
@@ -268,30 +411,41 @@ function updateTimer() {
   document.getElementById('recTimer').textContent = `${mm}:${ss}`;
 }
 
-function submitVoiceEntry() {
-  const name = document.getElementById('voice-name').value.trim() || 'Anonymous';
+async function submitVoiceEntry() {
+  const name        = document.getElementById('voice-name').value.trim();
   const destination = document.getElementById('voice-destination').value;
-  const status = document.getElementById('recStatus');
+  const status      = document.getElementById('recStatus');
 
   if (!destination) {
     status.textContent = 'Please select a destination before sharing.';
     return;
   }
-
   if (!recordedBlob) {
     status.textContent = 'No recording found. Please record first.';
     return;
   }
 
-  const url = URL.createObjectURL(recordedBlob);
-  addVoiceEntryToFeed(name, destination, url);
+  status.textContent = 'Uploading your voice entry...';
 
-  // Reset
-  discardRecording();
-  document.getElementById('voice-name').value = '';
-  document.getElementById('voice-destination').value = '';
-  document.getElementById('recTimer').textContent = '00:00';
-  status.textContent = 'Your voice entry has been shared!';
+  const formData = new FormData();
+  formData.append('audio', recordedBlob, 'entry.webm');
+  formData.append('destination', destination);
+  if (name) formData.append('name', name);
+
+  try {
+    const res = await fetch('/api/voice-entries', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed.');
+
+    discardRecording();
+    document.getElementById('voice-name').value = '';
+    document.getElementById('voice-destination').value = '';
+    document.getElementById('recTimer').textContent = '00:00';
+    status.textContent = 'Your voice entry has been shared!';
+    loadVoiceEntries();
+  } catch (err) {
+    status.textContent = err.message || 'Could not share your entry. Please try again.';
+  }
 }
 
 function discardRecording() {
@@ -303,36 +457,34 @@ function discardRecording() {
   document.getElementById('recTimer').textContent = '00:00';
 }
 
-function addVoiceEntryToFeed(name, destination, audioUrl) {
+async function loadVoiceEntries() {
   const feed = document.getElementById('voiceFeed');
-
-  const noEntries = feed.querySelector('.no-entries');
-  if (noEntries) noEntries.remove();
-
-  const now = new Date();
-  const timeStr = now.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
-
-  const entry = document.createElement('div');
-  entry.className = 'voice-entry';
-  entry.innerHTML = `
-    <div class="voice-entry-header">
-      <strong>🎙️ ${escapeHtml(name)}</strong>
-      <span class="ve-destination">${escapeHtml(destination)}</span>
-      <span class="ve-time">${timeStr}</span>
-    </div>
-    <audio controls src="${audioUrl}"></audio>
-  `;
-  feed.prepend(entry);
-}
-
-function escapeHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// Show placeholder when feed is empty
-window.addEventListener('DOMContentLoaded', () => {
-  const feed = document.getElementById('voiceFeed');
-  if (feed && feed.children.length === 0) {
-    feed.innerHTML = '<p class="no-entries">No voice entries yet — be the first to share yours!</p>';
+  if (!feed) return;
+  try {
+    const res = await fetch('/api/voice-entries');
+    const data = await res.json();
+    renderVoiceFeed(data.entries || []);
+  } catch (err) {
+    feed.innerHTML = '<p class="no-entries">Could not load voice entries.</p>';
   }
-});
+}
+
+function renderVoiceFeed(entries) {
+  const feed = document.getElementById('voiceFeed');
+  if (!entries.length) {
+    feed.innerHTML = '<p class="no-entries">No voice entries yet — be the first to share yours!</p>';
+    return;
+  }
+  feed.innerHTML = entries.map(entry => {
+    const timeStr = new Date(entry.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+    return `
+      <div class="voice-entry">
+        <div class="voice-entry-header">
+          <strong>🎙️ ${escapeHtml(entry.name)}</strong>
+          <span class="ve-destination">${escapeHtml(entry.destination)}</span>
+          <span class="ve-time">${timeStr}</span>
+        </div>
+        <audio controls src="${entry.audioUrl}"></audio>
+      </div>`;
+  }).join('');
+}

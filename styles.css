@@ -138,10 +138,13 @@ body.dark .dark-toggle { border-color: #555; background: #2a2a2a; }
   padding: 9px 22px;
   background: #e07b39;
   color: #fff;
+  border: none;
   border-radius: 50px;
   font-size: 0.9rem;
+  font-family: inherit;
   font-weight: 600;
   text-decoration: none;
+  cursor: pointer;
   transition: background 0.2s, transform 0.2s;
   white-space: nowrap;
 }
@@ -149,6 +152,27 @@ body.dark .dark-toggle { border-color: #555; background: #2a2a2a; }
 .nav-auth-btn:hover {
   background: #c9652a;
   transform: translateY(-1px);
+}
+
+#authArea {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-user {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #555;
+  white-space: nowrap;
+}
+body.dark .nav-user { color: #ccc; }
+
+.loading-msg,
+.no-entries {
+  color: #888;
+  font-size: 0.95rem;
+  padding: 20px 0;
 }
 
 /* Hero */

@@ -1,3 +1,15 @@
+document.addEventListener('DOMContentLoaded', redirectIfLoggedIn);
+
+async function redirectIfLoggedIn() {
+  try {
+    const res = await fetch('/api/auth/me');
+    const data = await res.json();
+    if (data.user) window.location.href = 'index.html';
+  } catch (err) {
+    // ignore — treat as logged out
+  }
+}
+
 function switchTab(tab) {
   const loginForm  = document.getElementById('loginForm');
   const signupForm = document.getElementById('signupForm');
@@ -17,23 +29,37 @@ function switchTab(tab) {
   }
 }
 
-function handleLogin(e) {
+async function handleLogin(e) {
   e.preventDefault();
-  const msg   = document.getElementById('loginMsg');
-  const email = document.getElementById('loginEmail').value.trim();
+  const msg      = document.getElementById('loginMsg');
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
 
-  msg.className = 'auth-msg success';
-  msg.textContent = `Welcome back! Logged in as ${email}`;
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Login failed.');
 
-  setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+    msg.className = 'auth-msg success';
+    msg.textContent = `Welcome back! Logged in as ${data.user.name}`;
+    setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+  } catch (err) {
+    msg.className = 'auth-msg error';
+    msg.textContent = err.message;
+  }
 }
 
-function handleSignup(e) {
+async function handleSignup(e) {
   e.preventDefault();
   const msg      = document.getElementById('signupMsg');
+  const name     = document.getElementById('signupName').value.trim();
+  const email    = document.getElementById('signupEmail').value.trim();
   const password = document.getElementById('signupPassword').value;
   const confirm  = document.getElementById('signupConfirm').value;
-  const name     = document.getElementById('signupName').value.trim();
 
   if (password !== confirm) {
     msg.className = 'auth-msg error';
@@ -41,10 +67,22 @@ function handleSignup(e) {
     return;
   }
 
-  msg.className = 'auth-msg success';
-  msg.textContent = `Account created! Welcome, ${name}!`;
+  try {
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Signup failed.');
 
-  setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+    msg.className = 'auth-msg success';
+    msg.textContent = `Account created! Welcome, ${data.user.name}!`;
+    setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+  } catch (err) {
+    msg.className = 'auth-msg error';
+    msg.textContent = err.message;
+  }
 }
 
 function togglePassword(inputId, icon) {
@@ -75,13 +113,24 @@ function closeForgotModal(e) {
   }
 }
 
-function sendResetLink(e) {
+async function sendResetLink(e) {
   e.preventDefault();
   const email = document.getElementById('forgotEmail').value.trim();
   const msg   = document.getElementById('forgotMsg');
 
-  msg.className = 'auth-msg success';
-  msg.textContent = `Reset link sent to ${email}. Please check your inbox!`;
+  try {
+    const res = await fetch('/api/auth/forgot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    msg.className = 'auth-msg success';
+    msg.textContent = data.message;
+  } catch (err) {
+    msg.className = 'auth-msg error';
+    msg.textContent = 'Could not send reset link right now.';
+  }
 
   setTimeout(() => {
     document.getElementById('forgotModal').classList.remove('open');
