@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', redirectIfLoggedIn);
 
 async function redirectIfLoggedIn() {
   try {
-    const res = await fetch('/api/auth/me');
+    const res = await apiFetch('/api/auth/me');
     const data = await res.json();
     if (data.user) window.location.href = 'index.html';
   } catch (err) {
@@ -36,7 +36,7 @@ async function handleLogin(e) {
   const password = document.getElementById('loginPassword').value;
 
   try {
-    const res = await fetch('/api/auth/login', {
+    const res = await apiFetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -68,7 +68,7 @@ async function handleSignup(e) {
   }
 
   try {
-    const res = await fetch('/api/auth/signup', {
+    const res = await apiFetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password }),
@@ -119,7 +119,7 @@ async function sendResetLink(e) {
   const msg   = document.getElementById('forgotMsg');
 
   try {
-    const res = await fetch('/api/auth/forgot', {
+    const res = await apiFetch('/api/auth/forgot', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),

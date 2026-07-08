@@ -10,6 +10,8 @@ services:
         value: production
       - key: SESSION_SECRET
         generateValue: true
+      - key: FRONTEND_ORIGIN
+        value: https://creative-palmier-f29a9c.netlify.app
     # Free plan has no persistent disk — data.sqlite and uploads/ reset on
     # every deploy and on spin-down after idling. To persist them, upgrade
     # this service to a paid plan and add:

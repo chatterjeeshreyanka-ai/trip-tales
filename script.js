@@ -72,7 +72,7 @@ let currentUser = null;
 
 async function loadSession() {
   try {
-    const res = await fetch('/api/auth/me');
+    const res = await apiFetch('/api/auth/me');
     const data = await res.json();
     currentUser = data.user;
   } catch (err) {
@@ -95,7 +95,7 @@ function renderAuthArea() {
 }
 
 async function logout() {
-  await fetch('/api/auth/logout', { method: 'POST' });
+  await apiFetch('/api/auth/logout', { method: 'POST' });
   currentUser = null;
   renderAuthArea();
   initFavourites();
@@ -108,7 +108,7 @@ let destinationsById = {};
 async function loadDestinations() {
   const grid = document.getElementById('cardsGrid');
   try {
-    const res = await fetch('/api/destinations');
+    const res = await apiFetch('/api/destinations');
     const data = await res.json();
     const destinations = data.destinations || [];
     destinationsById = Object.fromEntries(destinations.map(d => [d.id, d]));
@@ -179,7 +179,7 @@ async function initFavourites() {
   let favs = [];
   if (currentUser) {
     try {
-      const res = await fetch('/api/favourites');
+      const res = await apiFetch('/api/favourites');
       const data = await res.json();
       favs = data.favourites || [];
     } catch (err) {
@@ -201,7 +201,7 @@ async function toggleFav(e, id) {
 
   if (currentUser) {
     try {
-      const res = await fetch(`/api/favourites/${encodeURIComponent(id)}`, { method: 'POST' });
+      const res = await apiFetch(`/api/favourites/${encodeURIComponent(id)}`, { method: 'POST' });
       const data = await res.json();
       if (data.favourited) {
         btn.textContent = '♥'; btn.classList.add('active');
@@ -236,7 +236,7 @@ async function toggleFav(e, id) {
 async function loadStories() {
   const grid = document.getElementById('storiesGrid');
   try {
-    const res = await fetch('/api/stories');
+    const res = await apiFetch('/api/stories');
     const data = await res.json();
     const stories = data.stories || [];
 
@@ -259,7 +259,7 @@ async function loadStories() {
 async function loadGallery() {
   const grid = document.getElementById('galleryGrid');
   try {
-    const res = await fetch('/api/gallery');
+    const res = await apiFetch('/api/gallery');
     const data = await res.json();
     const items = data.items || [];
 
@@ -320,7 +320,7 @@ async function handleSubscribe(event) {
   const msg   = document.getElementById('confirm-msg');
 
   try {
-    const res = await fetch('/api/newsletter', {
+    const res = await apiFetch('/api/newsletter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
@@ -433,7 +433,7 @@ async function submitVoiceEntry() {
   if (name) formData.append('name', name);
 
   try {
-    const res = await fetch('/api/voice-entries', { method: 'POST', body: formData });
+    const res = await apiFetch('/api/voice-entries', { method: 'POST', body: formData });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Upload failed.');
 
@@ -461,7 +461,7 @@ async function loadVoiceEntries() {
   const feed = document.getElementById('voiceFeed');
   if (!feed) return;
   try {
-    const res = await fetch('/api/voice-entries');
+    const res = await apiFetch('/api/voice-entries');
     const data = await res.json();
     renderVoiceFeed(data.entries || []);
   } catch (err) {
@@ -484,7 +484,7 @@ function renderVoiceFeed(entries) {
           <span class="ve-destination">${escapeHtml(entry.destination)}</span>
           <span class="ve-time">${timeStr}</span>
         </div>
-        <audio controls src="${entry.audioUrl}"></audio>
+        <audio controls src="${API_BASE}${entry.audioUrl}"></audio>
       </div>`;
   }).join('');
 }
