@@ -3,7 +3,7 @@
 // Render backend directly.
 const API_BASE = (location.hostname === 'localhost' || location.hostname.endsWith('onrender.com'))
   ? ''
-  : 'https://trip-tales.onrender.com';
+  : 'https://trip-tales-0sb4.onrender.com';
 
 function apiFetch(path, options = {}) {
   return fetch(API_BASE + path, { ...options, credentials: 'include' });
