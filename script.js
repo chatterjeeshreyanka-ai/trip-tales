@@ -271,6 +271,8 @@ async function loadGallery() {
     const data = await res.json();
     const items = data.items || [];
 
+    renderGalleryFilters(items);
+
     grid.innerHTML = items.map(item => `
       <div class="gallery-item${item.large ? ' large' : ''}" data-place="${item.place}">
         <div class="gallery-thumb" style="background:linear-gradient(${item.gradient});">
@@ -294,6 +296,16 @@ async function loadGallery() {
   } catch (err) {
     grid.innerHTML = '<p class="loading-msg">Could not load gallery.</p>';
   }
+}
+
+function renderGalleryFilters(items) {
+  const container = document.getElementById('galleryFilters');
+  if (!container) return;
+  const places = [...new Set(items.map(i => i.place))];
+  const label = place => place.charAt(0).toUpperCase() + place.slice(1);
+
+  container.innerHTML = `<button class="gf-btn active" onclick="filterGallery('all', this)">All</button>`
+    + places.map(p => `<button class="gf-btn" onclick="filterGallery('${p}', this)">${escapeHtml(label(p))}</button>`).join('');
 }
 
 function filterGallery(place, btn) {

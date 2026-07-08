@@ -113,6 +113,8 @@ const storySeed = [
   { author: 'Rohan M.', destination: 'Rishikesh, India', avatar: '👨‍🦳', text: 'River rafting on the Ganges in Rishikesh was an absolute thrill! And the evenings doing yoga by the river brought a peace I never knew I needed.', stars: 5 },
   { author: 'Priya R.', destination: 'Varanasi, India', avatar: '👩‍🦰', text: 'Varanasi is like no place on earth. The ancient ghats at sunrise, the floating diyas, the sounds of prayers — it touches something deep in your soul.', stars: 5 },
   { author: 'Karthik V.', destination: 'Vizag, India', avatar: '👨‍🦱', text: "Vizag surprised me completely — the RK Beach at sunset, the Araku Valley coffee, the submarine museum. It's a destination that has it all!", stars: 5 },
+  { author: 'Debjani M.', destination: 'Purulia, India', avatar: '👩‍🎨', text: "Watching a live Chhau performance under the open sky in Purulia was unlike anything I'd seen — the masks, the drums, the sheer athleticism. It felt ancient and electric at once.", stars: 5 },
+  { author: 'Arjun T.', destination: 'Darjeeling, India', avatar: '👨‍🦰', text: 'Waking up at 4am for the Tiger Hill sunrise over Kangchenjunga was worth every shiver. A cup of fresh Darjeeling tea on the foggy toy train ride afterward sealed it as my favourite hill trip ever.', stars: 5 },
 ];
 
 const gallerySeed = [
@@ -130,6 +132,10 @@ const gallerySeed = [
   { place: 'agra', caption: 'Agra Fort', emoji: '🏯', gradient: '135deg,#bbdefb,#1976d2', large: 0 },
   { place: 'mussoorie', caption: 'Mall Road', emoji: '⛰️', gradient: '135deg,#dcedc8,#558b2f', large: 0 },
   { place: 'mussoorie', caption: 'Kempty Falls', emoji: '💧', gradient: '135deg,#c5e1a5,#33691e', large: 1 },
+  { place: 'purulia', caption: 'Chhau Dance', emoji: '🎭', gradient: '135deg,#ffab91,#ff7043', large: 0 },
+  { place: 'purulia', caption: 'Ajodhya Hills', emoji: '🏞️', gradient: '135deg,#ffccbc,#d84315', large: 1 },
+  { place: 'darjeeling', caption: 'Tea Gardens', emoji: '🍃', gradient: '135deg,#b2dfdb,#00796b', large: 1 },
+  { place: 'darjeeling', caption: 'Toy Train', emoji: '🚂', gradient: '135deg,#c8e6c9,#33691e', large: 0 },
 ];
 
 // INSERT OR IGNORE (keyed on the id primary key) so newly added seed entries
@@ -146,23 +152,34 @@ const gallerySeed = [
   tx(destinationSeed);
 }
 
-const storyCount = db.prepare('SELECT COUNT(*) AS n FROM stories').get().n;
-if (storyCount === 0) {
+// Neither table has a natural unique key to hang INSERT OR IGNORE off of, so
+// check existence per row instead — keeps this idempotent as more seed
+// entries are added later, the same way destinations is handled above.
+{
   const insert = db.prepare(`
     INSERT INTO stories (author, destination, avatar, text, stars)
     VALUES (@author, @destination, @avatar, @text, @stars)
   `);
-  const tx = db.transaction((rows) => { for (const r of rows) insert.run(r); });
+  const exists = db.prepare('SELECT 1 FROM stories WHERE author = ? AND destination = ?');
+  const tx = db.transaction((rows) => {
+    for (const r of rows) {
+      if (!exists.get(r.author, r.destination)) insert.run(r);
+    }
+  });
   tx(storySeed);
 }
 
-const galleryCount = db.prepare('SELECT COUNT(*) AS n FROM gallery_items').get().n;
-if (galleryCount === 0) {
+{
   const insert = db.prepare(`
     INSERT INTO gallery_items (place, caption, emoji, gradient, large)
     VALUES (@place, @caption, @emoji, @gradient, @large)
   `);
-  const tx = db.transaction((rows) => { for (const r of rows) insert.run(r); });
+  const exists = db.prepare('SELECT 1 FROM gallery_items WHERE place = ? AND caption = ?');
+  const tx = db.transaction((rows) => {
+    for (const r of rows) {
+      if (!exists.get(r.place, r.caption)) insert.run(r);
+    }
+  });
   tx(gallerySeed);
 }
 
