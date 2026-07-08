@@ -7,17 +7,22 @@ const multer = require('multer');
 const db = require('./db');
 
 const PORT = process.env.PORT || 8080;
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR);
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(express.json());
 app.use(session({
   secret: process.env.SESSION_SECRET || 'trip-tales-dev-secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 },
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+    secure: process.env.NODE_ENV === 'production',
+  },
 }));
 
 const upload = multer({

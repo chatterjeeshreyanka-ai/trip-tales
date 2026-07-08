@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: trip-tales
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+    # Free plan has no persistent disk — data.sqlite and uploads/ reset on
+    # every deploy and on spin-down after idling. To persist them, upgrade
+    # this service to a paid plan and add:
+    #
+    # disk:
+    #   name: trip-tales-data
+    #   mountPath: /data
+    #   sizeGB: 1
+    #
+    # then add an env var DATA_DIR=/data (server.js and db.js already read it).
