@@ -265,6 +265,20 @@ async function loadStories() {
 }
 
 // ── Gallery ──────────────────────────────────────────
+function getGalleryTokens() {
+  return JSON.parse(localStorage.getItem('tt-gallery-tokens') || '{}');
+}
+function saveGalleryToken(id, token) {
+  const tokens = getGalleryTokens();
+  tokens[id] = token;
+  localStorage.setItem('tt-gallery-tokens', JSON.stringify(tokens));
+}
+function clearGalleryToken(id) {
+  const tokens = getGalleryTokens();
+  delete tokens[id];
+  localStorage.setItem('tt-gallery-tokens', JSON.stringify(tokens));
+}
+
 async function loadGallery() {
   const grid = document.getElementById('galleryGrid');
   try {
@@ -274,8 +288,12 @@ async function loadGallery() {
 
     renderGalleryFilters(items);
 
-    grid.innerHTML = items.map(item => `
+    const tokens = getGalleryTokens();
+    grid.innerHTML = items.map(item => {
+      const canDelete = item.mine || Object.prototype.hasOwnProperty.call(tokens, item.id);
+      return `
       <div class="gallery-item${item.large ? ' large' : ''}" data-place="${item.place}">
+        ${canDelete ? `<button class="gallery-delete-btn" onclick="deleteGalleryPhoto(event, ${item.id})" title="Delete photo">✕</button>` : ''}
         <div class="gallery-thumb" ${item.imageUrl ? '' : `style="background:linear-gradient(${item.gradient});"`}>
           ${item.imageUrl ? `<img src="${API_BASE}${item.imageUrl}" alt="${escapeHtml(item.caption)}" class="gallery-photo" />` : `<span>${item.emoji}</span>`}
         </div>
@@ -284,7 +302,8 @@ async function loadGallery() {
           <span>${escapeHtml(item.place.charAt(0).toUpperCase() + item.place.slice(1))}</span>
         </div>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     document.querySelectorAll('.gallery-item').forEach(item => {
       item.addEventListener('click', () => {
@@ -339,6 +358,8 @@ async function submitGalleryPhoto() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Upload failed.');
 
+    if (data.item.deleteToken) saveGalleryToken(data.item.id, data.item.deleteToken);
+
     document.getElementById('gallery-name').value = '';
     document.getElementById('gallery-destination').value = '';
     document.getElementById('gallery-caption').value = '';
@@ -347,6 +368,28 @@ async function submitGalleryPhoto() {
     loadGallery();
   } catch (err) {
     status.textContent = err.message || 'Could not upload your photo. Please try again.';
+  }
+}
+
+async function deleteGalleryPhoto(e, id) {
+  e.stopPropagation();
+  if (!confirm('Delete this photo? This cannot be undone.')) return;
+
+  const tokens = getGalleryTokens();
+  try {
+    const res = await apiFetch(`/api/gallery/${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deleteToken: tokens[id] || null }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Could not delete photo.');
+
+    clearGalleryToken(id);
+    showToast('Photo deleted');
+    loadGallery();
+  } catch (err) {
+    showToast(err.message || 'Could not delete photo.');
   }
 }
 

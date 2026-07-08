@@ -87,6 +87,13 @@ function ensureColumn(table, column, definition) {
 }
 ensureColumn('gallery_items', 'image_filename', 'TEXT');
 ensureColumn('gallery_items', 'uploader_name', 'TEXT');
+ensureColumn('gallery_items', 'user_id', 'INTEGER');
+ensureColumn('gallery_items', 'delete_token_hash', 'TEXT');
+
+// One-off cleanup: remove test photos uploaded while verifying the upload
+// feature, before ownership tracking existed.
+db.prepare("DELETE FROM gallery_items WHERE image_filename IS NOT NULL AND user_id IS NULL AND delete_token_hash IS NULL")
+  .run();
 
 const destinationSeed = [
   { id: 'haridwar', name: 'Haridwar, India', emoji: '🕉️', bg: '#ffe0b2',

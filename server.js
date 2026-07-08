@@ -124,7 +124,7 @@ app.get('/api/stories', (req, res) => {
 });
 
 // ---- Gallery ----
-function mapGalleryItem(r) {
+function mapGalleryItem(r, viewerUserId) {
   return {
     id: r.id,
     place: r.place,
@@ -134,12 +134,13 @@ function mapGalleryItem(r) {
     large: !!r.large,
     imageUrl: r.image_filename ? `/uploads/${r.image_filename}` : null,
     uploaderName: r.uploader_name,
+    mine: r.user_id != null && r.user_id === viewerUserId,
   };
 }
 
 app.get('/api/gallery', (req, res) => {
   const rows = db.prepare('SELECT * FROM gallery_items ORDER BY id ASC').all();
-  res.json({ items: rows.map(mapGalleryItem) });
+  res.json({ items: rows.map(r => mapGalleryItem(r, req.session.userId || null)) });
 });
 
 app.post('/api/gallery', imageUpload.single('image'), (req, res) => {
@@ -157,10 +158,21 @@ app.post('/api/gallery', imageUpload.single('image'), (req, res) => {
   }
   if (!uploaderName) uploaderName = 'Anonymous';
 
+  // Logged-in uploads are owned via user_id. Anonymous uploads get a random
+  // delete token (only ever shown once, in this response) so the uploading
+  // browser — and only it — can delete the photo later.
+  const userId = req.session.userId || null;
+  let deleteToken = null;
+  let deleteTokenHash = null;
+  if (!userId) {
+    deleteToken = crypto.randomBytes(24).toString('hex');
+    deleteTokenHash = crypto.createHash('sha256').update(deleteToken).digest('hex');
+  }
+
   const info = db.prepare(`
-    INSERT INTO gallery_items (place, caption, emoji, gradient, large, image_filename, uploader_name)
-    VALUES (?, ?, '', '', 0, ?, ?)
-  `).run(place, caption, req.file.filename, uploaderName);
+    INSERT INTO gallery_items (place, caption, emoji, gradient, large, image_filename, uploader_name, user_id, delete_token_hash)
+    VALUES (?, ?, '', '', 0, ?, ?, ?, ?)
+  `).run(place, caption, req.file.filename, uploaderName, userId, deleteTokenHash);
 
   res.json({
     item: {
@@ -168,8 +180,33 @@ app.post('/api/gallery', imageUpload.single('image'), (req, res) => {
       place, caption, emoji: '', gradient: '', large: false,
       imageUrl: `/uploads/${req.file.filename}`,
       uploaderName,
+      mine: !!userId,
+      deleteToken,
     },
   });
+});
+
+app.delete('/api/gallery/:id', (req, res) => {
+  const row = db.prepare('SELECT * FROM gallery_items WHERE id = ?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Photo not found.' });
+  if (!row.image_filename) return res.status(403).json({ error: 'This item cannot be deleted.' });
+
+  if (row.user_id != null) {
+    if (req.session.userId !== row.user_id) {
+      return res.status(403).json({ error: 'You can only delete your own photos.' });
+    }
+  } else {
+    const token = (req.body && req.body.deleteToken) || '';
+    const tokenHash = token ? crypto.createHash('sha256').update(token).digest('hex') : '';
+    if (!token || tokenHash !== row.delete_token_hash) {
+      return res.status(403).json({ error: 'You can only delete photos you uploaded.' });
+    }
+  }
+
+  db.prepare('DELETE FROM gallery_items WHERE id = ?').run(row.id);
+  fs.unlink(path.join(UPLOAD_DIR, row.image_filename), () => {});
+
+  res.json({ ok: true });
 });
 
 // ---- Voice entries ----
