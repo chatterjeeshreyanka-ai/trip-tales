@@ -133,8 +133,9 @@
 
     <!-- Lightbox -->
     <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-      <div class="lightbox-content">
-        <div class="lightbox-thumb" id="lightboxThumb"></div>
+      <button class="lightbox-close" onclick="closeLightbox()" title="Close">✕</button>
+      <div class="lightbox-content" onclick="event.stopPropagation()">
+        <div id="lightboxThumb"></div>
         <p class="lightbox-caption" id="lightboxCaption"></p>
       </div>
     </div>

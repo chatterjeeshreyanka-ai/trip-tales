@@ -306,7 +306,7 @@ async function loadGallery() {
     grid.innerHTML = items.map(item => {
       const canDelete = item.mine || Object.prototype.hasOwnProperty.call(tokens, item.id);
       return `
-      <div class="gallery-item${item.large ? ' large' : ''}" data-place="${item.place}">
+      <div class="gallery-item${item.large ? ' large' : ''}" data-place="${item.place}" data-id="${item.id}">
         ${canDelete ? `<button class="gallery-edit-btn" onclick="editGalleryPhoto(event, ${item.id})" title="Edit caption">✎</button>` : ''}
         ${canDelete ? `<button class="gallery-delete-btn" onclick="deleteGalleryPhoto(event, ${item.id})" title="Delete photo">✕</button>` : ''}
         <div class="gallery-thumb" ${item.imageUrl ? '' : `style="background:linear-gradient(${item.gradient});"`}>
@@ -322,10 +322,8 @@ async function loadGallery() {
 
     document.querySelectorAll('.gallery-item').forEach(item => {
       item.addEventListener('click', () => {
-        const thumbHtml = item.querySelector('.gallery-thumb').outerHTML;
-        const caption   = item.querySelector('.gallery-overlay p').textContent
-                        + ' — ' + item.querySelector('.gallery-overlay span').textContent;
-        openLightbox(thumbHtml, caption);
+        const galleryItem = galleryItemsCache.find(i => i.id === Number(item.dataset.id));
+        if (galleryItem) openLightbox(galleryItem);
       });
     });
   } catch (err) {
@@ -445,15 +443,26 @@ function filterGallery(place, btn) {
   });
 }
 
-function openLightbox(thumbHtml, caption) {
+function openLightbox(item) {
   const lb = document.getElementById('lightbox');
-  document.getElementById('lightboxThumb').innerHTML = thumbHtml;
-  document.getElementById('lightboxCaption').textContent = caption;
+  const thumb = document.getElementById('lightboxThumb');
+  const place = item.place.charAt(0).toUpperCase() + item.place.slice(1);
+
+  thumb.innerHTML = item.imageUrl
+    ? `<img src="${API_BASE}${item.imageUrl}" alt="${escapeHtml(item.caption)}" class="lightbox-photo" />`
+    : `<div class="lightbox-thumb-placeholder" style="background:linear-gradient(${item.gradient});"><span>${item.emoji}</span></div>`;
+  document.getElementById('lightboxCaption').textContent = `${item.caption} — ${place}`;
   lb.classList.add('open');
+  document.addEventListener('keydown', handleLightboxKeydown);
 }
 
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
+  document.removeEventListener('keydown', handleLightboxKeydown);
+}
+
+function handleLightboxKeydown(e) {
+  if (e.key === 'Escape') closeLightbox();
 }
 
 // ── Newsletter ───────────────────────────────────────
