@@ -290,12 +290,15 @@ function clearGalleryToken(id) {
   localStorage.setItem('tt-gallery-tokens', JSON.stringify(tokens));
 }
 
+let galleryItemsCache = [];
+
 async function loadGallery() {
   const grid = document.getElementById('galleryGrid');
   try {
     const res = await apiFetch('/api/gallery');
     const data = await res.json();
     const items = data.items || [];
+    galleryItemsCache = items;
 
     renderGalleryFilters(items);
 
@@ -304,6 +307,7 @@ async function loadGallery() {
       const canDelete = item.mine || Object.prototype.hasOwnProperty.call(tokens, item.id);
       return `
       <div class="gallery-item${item.large ? ' large' : ''}" data-place="${item.place}">
+        ${canDelete ? `<button class="gallery-edit-btn" onclick="editGalleryPhoto(event, ${item.id})" title="Edit caption">✎</button>` : ''}
         ${canDelete ? `<button class="gallery-delete-btn" onclick="deleteGalleryPhoto(event, ${item.id})" title="Delete photo">✕</button>` : ''}
         <div class="gallery-thumb" ${item.imageUrl ? '' : `style="background:linear-gradient(${item.gradient});"`}>
           ${item.imageUrl ? `<img src="${API_BASE}${item.imageUrl}" alt="${escapeHtml(item.caption)}" class="gallery-photo" />` : `<span>${item.emoji}</span>`}
@@ -379,6 +383,30 @@ async function submitGalleryPhoto() {
     loadGallery();
   } catch (err) {
     status.textContent = err.message || 'Could not upload your photo. Please try again.';
+  }
+}
+
+async function editGalleryPhoto(e, id) {
+  e.stopPropagation();
+
+  const item = galleryItemsCache.find(i => i.id === id);
+  const newCaption = prompt('Edit caption:', item ? item.caption : '');
+  if (newCaption === null) return;
+
+  const tokens = getGalleryTokens();
+  try {
+    const res = await apiFetch(`/api/gallery/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ caption: newCaption.trim(), deleteToken: tokens[id] || null }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Could not update caption.');
+
+    showToast('Caption updated');
+    loadGallery();
+  } catch (err) {
+    showToast(err.message || 'Could not update caption.');
   }
 }
 

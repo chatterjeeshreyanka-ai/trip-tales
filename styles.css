@@ -737,6 +737,28 @@ body.dark .gallery-upload-box { background: #1e1e1e; }
 .gallery-item:hover .gallery-delete-btn { opacity: 1; }
 .gallery-delete-btn:hover { background: #e53935; }
 
+.gallery-edit-btn {
+  position: absolute;
+  top: 10px;
+  right: 46px;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s;
+}
+.gallery-item:hover .gallery-edit-btn { opacity: 1; }
+.gallery-edit-btn:hover { background: #2f7ed8; }
+
 .gallery-item {
   position: relative;
   border-radius: 14px;

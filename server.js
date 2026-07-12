@@ -257,6 +257,32 @@ app.post('/api/gallery', imageUpload.single('image'), (req, res) => {
   });
 });
 
+app.put('/api/gallery/:id', (req, res) => {
+  const row = db.prepare('SELECT * FROM gallery_items WHERE id = ?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Photo not found.' });
+  if (!row.image_filename) return res.status(403).json({ error: 'This item cannot be edited.' });
+
+  if (!isAdmin(req.session.userId)) {
+    if (row.user_id != null) {
+      if (req.session.userId !== row.user_id) {
+        return res.status(403).json({ error: 'You can only edit your own photos.' });
+      }
+    } else {
+      const token = (req.body && req.body.deleteToken) || '';
+      const tokenHash = token ? crypto.createHash('sha256').update(token).digest('hex') : '';
+      if (!token || tokenHash !== row.delete_token_hash) {
+        return res.status(403).json({ error: 'You can only edit photos you uploaded.' });
+      }
+    }
+  }
+
+  let caption = ((req.body && req.body.caption) || '').trim();
+  if (!caption) caption = 'Untitled';
+
+  db.prepare('UPDATE gallery_items SET caption = ? WHERE id = ?').run(caption, row.id);
+  res.json({ ok: true, caption });
+});
+
 app.delete('/api/gallery/:id', (req, res) => {
   const row = db.prepare('SELECT * FROM gallery_items WHERE id = ?').get(req.params.id);
   if (!row) return res.status(404).json({ error: 'Photo not found.' });
