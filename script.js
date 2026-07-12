@@ -443,15 +443,44 @@ function filterGallery(place, btn) {
   });
 }
 
+const LIGHTBOX_ZOOM_MIN = 1;
+const LIGHTBOX_ZOOM_MAX = 4;
+const LIGHTBOX_ZOOM_STEP = 0.5;
+let lightboxZoomLevel = 1;
+let lightboxPanX = 0;
+let lightboxPanY = 0;
+let lightboxDragging = false;
+let lightboxDragStart = { x: 0, y: 0 };
+let lightboxPanStart = { x: 0, y: 0 };
+
 function openLightbox(item) {
   const lb = document.getElementById('lightbox');
   const thumb = document.getElementById('lightboxThumb');
+  const zoomControls = document.getElementById('lightboxZoomControls');
   const place = item.place.charAt(0).toUpperCase() + item.place.slice(1);
+
+  lightboxZoomLevel = 1;
+  lightboxPanX = 0;
+  lightboxPanY = 0;
 
   thumb.innerHTML = item.imageUrl
     ? `<img src="${API_BASE}${item.imageUrl}" alt="${escapeHtml(item.caption)}" class="lightbox-photo" />`
     : `<div class="lightbox-thumb-placeholder" style="background:linear-gradient(${item.gradient});"><span>${item.emoji}</span></div>`;
   document.getElementById('lightboxCaption').textContent = `${item.caption} — ${place}`;
+
+  const img = thumb.querySelector('.lightbox-photo');
+  if (img) {
+    zoomControls.style.display = 'flex';
+    img.addEventListener('wheel', onLightboxWheel, { passive: false });
+    img.addEventListener('dblclick', onLightboxDblClick);
+    img.addEventListener('pointerdown', onLightboxPointerDown);
+    img.addEventListener('pointermove', onLightboxPointerMove);
+    img.addEventListener('pointerup', onLightboxPointerUp);
+    img.addEventListener('pointerleave', onLightboxPointerUp);
+  } else {
+    zoomControls.style.display = 'none';
+  }
+
   lb.classList.add('open');
   document.addEventListener('keydown', handleLightboxKeydown);
 }
@@ -463,6 +492,74 @@ function closeLightbox() {
 
 function handleLightboxKeydown(e) {
   if (e.key === 'Escape') closeLightbox();
+}
+
+function setLightboxZoom(newZoom) {
+  lightboxZoomLevel = Math.min(LIGHTBOX_ZOOM_MAX, Math.max(LIGHTBOX_ZOOM_MIN, newZoom));
+  if (lightboxZoomLevel === 1) {
+    lightboxPanX = 0;
+    lightboxPanY = 0;
+  }
+  clampLightboxPan();
+  applyLightboxTransform();
+}
+
+function zoomLightbox(direction) {
+  setLightboxZoom(lightboxZoomLevel + direction * LIGHTBOX_ZOOM_STEP);
+}
+
+function resetLightboxZoom() {
+  setLightboxZoom(1);
+}
+
+function clampLightboxPan() {
+  const img = document.querySelector('.lightbox-photo');
+  const wrap = document.querySelector('.lightbox-photo-wrap');
+  if (!img || !wrap) return;
+  const wrapRect = wrap.getBoundingClientRect();
+  const maxX = Math.max((img.offsetWidth * lightboxZoomLevel - wrapRect.width) / 2, 0);
+  const maxY = Math.max((img.offsetHeight * lightboxZoomLevel - wrapRect.height) / 2, 0);
+  lightboxPanX = Math.min(maxX, Math.max(-maxX, lightboxPanX));
+  lightboxPanY = Math.min(maxY, Math.max(-maxY, lightboxPanY));
+}
+
+function applyLightboxTransform() {
+  const img = document.querySelector('.lightbox-photo');
+  if (!img) return;
+  img.style.transform = `translate(${lightboxPanX}px, ${lightboxPanY}px) scale(${lightboxZoomLevel})`;
+  img.classList.toggle('zoomed', lightboxZoomLevel > 1);
+}
+
+function onLightboxWheel(e) {
+  e.preventDefault();
+  setLightboxZoom(lightboxZoomLevel + (e.deltaY < 0 ? LIGHTBOX_ZOOM_STEP : -LIGHTBOX_ZOOM_STEP));
+}
+
+function onLightboxDblClick() {
+  setLightboxZoom(lightboxZoomLevel > 1 ? 1 : 2);
+}
+
+function onLightboxPointerDown(e) {
+  if (lightboxZoomLevel <= 1) return;
+  lightboxDragging = true;
+  e.currentTarget.classList.add('dragging');
+  lightboxDragStart = { x: e.clientX, y: e.clientY };
+  lightboxPanStart = { x: lightboxPanX, y: lightboxPanY };
+  e.currentTarget.setPointerCapture(e.pointerId);
+}
+
+function onLightboxPointerMove(e) {
+  if (!lightboxDragging) return;
+  lightboxPanX = lightboxPanStart.x + (e.clientX - lightboxDragStart.x);
+  lightboxPanY = lightboxPanStart.y + (e.clientY - lightboxDragStart.y);
+  clampLightboxPan();
+  applyLightboxTransform();
+}
+
+function onLightboxPointerUp(e) {
+  if (!lightboxDragging) return;
+  lightboxDragging = false;
+  e.currentTarget.classList.remove('dragging');
 }
 
 // ── Newsletter ───────────────────────────────────────

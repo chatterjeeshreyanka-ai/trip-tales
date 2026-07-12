@@ -134,8 +134,13 @@
     <!-- Lightbox -->
     <div class="lightbox" id="lightbox" onclick="closeLightbox()">
       <button class="lightbox-close" onclick="closeLightbox()" title="Close">✕</button>
+      <div class="lightbox-zoom-controls" id="lightboxZoomControls" onclick="event.stopPropagation()">
+        <button onclick="zoomLightbox(-1)" title="Zoom out">−</button>
+        <button onclick="resetLightboxZoom()" title="Reset zoom">⤢</button>
+        <button onclick="zoomLightbox(1)" title="Zoom in">+</button>
+      </div>
       <div class="lightbox-content" onclick="event.stopPropagation()">
-        <div id="lightboxThumb"></div>
+        <div class="lightbox-photo-wrap" id="lightboxThumb"></div>
         <p class="lightbox-caption" id="lightboxCaption"></p>
       </div>
     </div>
