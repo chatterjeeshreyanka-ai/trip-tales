@@ -27,7 +27,45 @@ window.addEventListener('DOMContentLoaded', () => {
   loadJournal();
   loadGallery();
   loadVoiceEntries();
+  initHeroSlider();
 });
+
+// ── Hero slider ──────────────────────────────────────
+let heroSlideIndex = 0;
+let heroSlideTimer = null;
+const HERO_SLIDE_INTERVAL = 5000;
+
+function initHeroSlider() {
+  const slides = document.querySelectorAll('.hero-slide');
+  if (!slides.length) return;
+  startHeroAutoplay();
+}
+
+function startHeroAutoplay() {
+  clearInterval(heroSlideTimer);
+  heroSlideTimer = setInterval(() => changeHeroSlide(1), HERO_SLIDE_INTERVAL);
+}
+
+function renderHeroSlide() {
+  const slides = document.querySelectorAll('.hero-slide');
+  const dots = document.querySelectorAll('.hero-dot');
+  slides.forEach((s, i) => s.classList.toggle('active', i === heroSlideIndex));
+  dots.forEach((d, i) => d.classList.toggle('active', i === heroSlideIndex));
+}
+
+function changeHeroSlide(delta) {
+  const slides = document.querySelectorAll('.hero-slide');
+  if (!slides.length) return;
+  heroSlideIndex = (heroSlideIndex + delta + slides.length) % slides.length;
+  renderHeroSlide();
+  startHeroAutoplay();
+}
+
+function goToHeroSlide(index) {
+  heroSlideIndex = index;
+  renderHeroSlide();
+  startHeroAutoplay();
+}
 
 function onLogout() {
   initFavourites();

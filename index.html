@@ -37,10 +37,49 @@
 
   <!-- Hero -->
   <section class="hero" id="home">
-    <div class="hero-content">
-      <h1>Explore the World,<br/>One Story at a Time</h1>
-      <p>Discover breathtaking destinations, travel tips, and inspiring stories from fellow adventurers.</p>
-      <a href="#destinations" class="btn">Start Exploring</a>
+    <div class="hero-slides" id="heroSlides">
+      <div class="hero-slide hero-slide-1 active">
+        <div class="hero-content">
+          <span class="hero-emoji">🕌</span>
+          <h1>Explore the World,<br/>One Story at a Time</h1>
+          <p>Discover breathtaking destinations, travel tips, and inspiring stories from fellow adventurers.</p>
+          <a href="#destinations" class="btn">Start Exploring</a>
+        </div>
+      </div>
+      <div class="hero-slide hero-slide-2">
+        <div class="hero-content">
+          <span class="hero-emoji">🍃</span>
+          <h1>Chase Sunrise<br/>Over Kangchenjunga</h1>
+          <p>Wander through misty tea gardens and ride the heritage toy train through Darjeeling.</p>
+          <a href="#" class="btn" onclick="openDestModal('darjeeling'); return false;">Discover Darjeeling</a>
+        </div>
+      </div>
+      <div class="hero-slide hero-slide-3">
+        <div class="hero-content">
+          <span class="hero-emoji">🛕</span>
+          <h1>Feel the Rhythm<br/>of the Rath Yatra</h1>
+          <p>Golden beaches, sacred temples, and centuries of devotion await on the Bay of Bengal.</p>
+          <a href="#" class="btn" onclick="openDestModal('puri'); return false;">Discover Puri</a>
+        </div>
+      </div>
+      <div class="hero-slide hero-slide-4">
+        <div class="hero-content">
+          <span class="hero-emoji">🏞️</span>
+          <h1>Ride the Rapids,<br/>Find Your Calm</h1>
+          <p>White-water rafting by day, riverside yoga by night — the Himalayan foothills of Rishikesh.</p>
+          <a href="#" class="btn" onclick="openDestModal('rishikesh'); return false;">Discover Rishikesh</a>
+        </div>
+      </div>
+    </div>
+
+    <button class="hero-arrow hero-arrow-prev" onclick="changeHeroSlide(-1)" aria-label="Previous slide">&#10094;</button>
+    <button class="hero-arrow hero-arrow-next" onclick="changeHeroSlide(1)" aria-label="Next slide">&#10095;</button>
+
+    <div class="hero-dots" id="heroDots">
+      <button class="hero-dot active" onclick="goToHeroSlide(0)" aria-label="Slide 1"></button>
+      <button class="hero-dot" onclick="goToHeroSlide(1)" aria-label="Slide 2"></button>
+      <button class="hero-dot" onclick="goToHeroSlide(2)" aria-label="Slide 3"></button>
+      <button class="hero-dot" onclick="goToHeroSlide(3)" aria-label="Slide 4"></button>
     </div>
   </section>
 
