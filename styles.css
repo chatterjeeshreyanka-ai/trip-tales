@@ -1095,6 +1095,7 @@ body.dark .gallery-upload-box { background: #1e1e1e; }
 }
 
 .voice-entry {
+  position: relative;
   background: #fff;
   border-radius: 14px;
   padding: 20px 24px;
@@ -1103,6 +1104,25 @@ body.dark .gallery-upload-box { background: #1e1e1e; }
   flex-direction: column;
   gap: 10px;
 }
+
+.voice-delete-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(0,0,0,0.06);
+  color: #888;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+.voice-delete-btn:hover { background: #e53935; color: #fff; }
 
 .voice-entry-header {
   display: flex;

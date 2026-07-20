@@ -310,7 +310,9 @@ app.delete('/api/gallery/:id', (req, res) => {
 
 // ---- Voice entries ----
 app.get('/api/voice-entries', (req, res) => {
-  const rows = db.prepare('SELECT id, name, destination, filename, created_at FROM voice_entries ORDER BY id DESC LIMIT 100').all();
+  const viewerUserId = req.session.userId || null;
+  const viewerIsAdmin = isAdmin(viewerUserId);
+  const rows = db.prepare('SELECT * FROM voice_entries ORDER BY id DESC LIMIT 100').all();
   res.json({
     entries: rows.map(r => ({
       id: r.id,
@@ -318,6 +320,7 @@ app.get('/api/voice-entries', (req, res) => {
       destination: r.destination,
       audioUrl: `/uploads/${r.filename}`,
       createdAt: r.created_at,
+      mine: (r.user_id != null && r.user_id === viewerUserId) || viewerIsAdmin,
     })),
   });
 });
@@ -334,8 +337,9 @@ app.post('/api/voice-entries', upload.single('audio'), (req, res) => {
   }
   if (!name) name = 'Anonymous';
 
-  const info = db.prepare('INSERT INTO voice_entries (name, destination, filename) VALUES (?, ?, ?)')
-    .run(name, destination, req.file.filename);
+  const userId = req.session.userId || null;
+  const info = db.prepare('INSERT INTO voice_entries (name, destination, filename, user_id) VALUES (?, ?, ?, ?)')
+    .run(name, destination, req.file.filename, userId);
 
   res.json({
     entry: {
@@ -344,8 +348,21 @@ app.post('/api/voice-entries', upload.single('audio'), (req, res) => {
       destination,
       audioUrl: `/uploads/${req.file.filename}`,
       createdAt: new Date().toISOString(),
+      mine: !!userId,
     },
   });
+});
+
+app.delete('/api/voice-entries/:id', requireAuth, (req, res) => {
+  const row = db.prepare('SELECT * FROM voice_entries WHERE id = ?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Entry not found.' });
+  if (row.user_id !== req.session.userId && !isAdmin(req.session.userId)) {
+    return res.status(403).json({ error: 'You can only delete your own voice entries.' });
+  }
+
+  db.prepare('DELETE FROM voice_entries WHERE id = ?').run(row.id);
+  fs.unlink(path.join(UPLOAD_DIR, row.filename), () => {});
+  res.json({ ok: true });
 });
 
 // ---- Newsletter ----

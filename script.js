@@ -729,6 +729,7 @@ function renderVoiceFeed(entries) {
     const timeStr = new Date(entry.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
     return `
       <div class="voice-entry">
+        ${entry.mine ? `<button class="voice-delete-btn" onclick="deleteVoiceEntry(event, ${entry.id})" title="Delete entry">✕</button>` : ''}
         <div class="voice-entry-header">
           <strong>🎙️ ${escapeHtml(entry.name)}</strong>
           <span class="ve-destination">${escapeHtml(entry.destination)}</span>
@@ -737,4 +738,19 @@ function renderVoiceFeed(entries) {
         <audio controls src="${API_BASE}${entry.audioUrl}"></audio>
       </div>`;
   }).join('');
+}
+
+async function deleteVoiceEntry(e, id) {
+  e.stopPropagation();
+  if (!confirm('Delete this voice entry? This cannot be undone.')) return;
+
+  try {
+    const res = await apiFetch(`/api/voice-entries/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Could not delete entry.');
+    showToast('Voice entry deleted');
+    loadVoiceEntries();
+  } catch (err) {
+    showToast(err.message || 'Could not delete entry.');
+  }
 }
