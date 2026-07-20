@@ -1,2 +1,11 @@
 [build]
   publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "microphone=(self), camera=(), geolocation=(), payment=(), usb=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://trip-tales-0sb4.onrender.com data:; media-src 'self' https://trip-tales-0sb4.onrender.com blob:; connect-src 'self' https://trip-tales-0sb4.onrender.com; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"

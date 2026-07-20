@@ -23,6 +23,23 @@ app.set('trust proxy', 1);
 
 app.use(cors({ origin: FRONTEND_ORIGIN, credentials: true }));
 
+// Security headers. The primary site is served by Netlify (see netlify.toml
+// for the matching headers there) — this covers API responses plus the
+// static copy Render serves directly at its own URL, both same-origin here.
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'microphone=(self), camera=(), geolocation=(), payment=(), usb=()');
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; " +
+    "img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; font-src 'self'; " +
+    "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+  );
+  next();
+});
+
 // CORS only stops browser JS from reading a cross-origin response; it does
 // not stop a malicious page from sending a request in the first place when
 // the request is "simple" (e.g. a plain multipart/form-data POST needs no
