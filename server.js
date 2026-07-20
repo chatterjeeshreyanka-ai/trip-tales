@@ -77,6 +77,16 @@ function escapeHtml(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// req.ip depends on Express's trust-proxy hop count matching the host's
+// actual proxy chain exactly, which varies by platform. Read the original
+// client IP directly off X-Forwarded-For (the leftmost entry, set by the
+// first proxy in the chain) instead of relying on that hop count.
+function clientIp(req) {
+  const xff = req.headers['x-forwarded-for'];
+  if (xff) return xff.split(',')[0].trim();
+  return req.socket.remoteAddress;
+}
+
 // In-memory per-IP rate limiter for auth endpoints, to slow down brute-force
 // and mass account creation without adding an external dependency.
 function rateLimit({ windowMs, max, message }) {
@@ -89,7 +99,7 @@ function rateLimit({ windowMs, max, message }) {
   }, windowMs).unref();
 
   return (req, res, next) => {
-    const key = req.ip;
+    const key = clientIp(req);
     const now = Date.now();
     let entry = hits.get(key);
     if (!entry || now - entry.start > windowMs) {
