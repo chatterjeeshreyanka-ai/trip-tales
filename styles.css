@@ -293,6 +293,7 @@ body.dark .nav-user { color: #ccc; }
   background: #fff;
   color: #e07b39;
   border-radius: 50px;
+  font-family: inherit;
   font-size: 1rem;
   font-weight: 700;
   text-decoration: none;
