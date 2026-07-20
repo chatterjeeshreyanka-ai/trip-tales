@@ -40,6 +40,7 @@ const upload = multer({
     filename: (req, file, cb) => cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}.webm`),
   }),
   limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => cb(null, file.mimetype === 'audio/webm'),
 });
 
 const IMAGE_EXTENSIONS = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' };
@@ -75,6 +76,38 @@ function requireAdmin(req, res, next) {
 function escapeHtml(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+
+// In-memory per-IP rate limiter for auth endpoints, to slow down brute-force
+// and mass account creation without adding an external dependency.
+function rateLimit({ windowMs, max, message }) {
+  const hits = new Map();
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of hits) {
+      if (now - entry.start > windowMs) hits.delete(key);
+    }
+  }, windowMs).unref();
+
+  return (req, res, next) => {
+    const key = req.ip;
+    const now = Date.now();
+    let entry = hits.get(key);
+    if (!entry || now - entry.start > windowMs) {
+      entry = { start: now, count: 0 };
+      hits.set(key, entry);
+    }
+    entry.count++;
+    if (entry.count > max) {
+      return res.status(429).json({ error: message || 'Too many requests. Please try again later.' });
+    }
+    next();
+  };
+}
+
+const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: 'Too many login attempts. Please try again in 15 minutes.' });
+const signupLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 8, message: 'Too many signup attempts. Please try again later.' });
+const forgotLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 5, message: 'Too many requests. Please try again later.' });
+const resetLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: 'Too many attempts. Please try again later.' });
 
 async function sendPasswordResetEmail(toEmail, name, resetUrl) {
   if (!process.env.RESEND_API_KEY) {
@@ -378,7 +411,7 @@ app.post('/api/newsletter', (req, res) => {
 });
 
 // ---- Auth ----
-app.post('/api/auth/signup', (req, res) => {
+app.post('/api/auth/signup', signupLimiter, (req, res) => {
   const { name, email, password } = req.body || {};
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'Name, email and password are required.' });
@@ -399,7 +432,7 @@ app.post('/api/auth/signup', (req, res) => {
   res.json({ user: publicUser({ id: info.lastInsertRowid, name: name.trim(), email: normalizedEmail }) });
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', loginLimiter, (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: 'Email and password are required.' });
 
@@ -442,7 +475,7 @@ app.post('/api/auth/change-password', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/auth/forgot', async (req, res) => {
+app.post('/api/auth/forgot', forgotLimiter, async (req, res) => {
   const email = (req.body.email || '').trim().toLowerCase();
   const genericResponse = { message: "If that email is registered, we've sent a reset link." };
   if (!email) return res.json(genericResponse);
@@ -470,7 +503,7 @@ app.post('/api/auth/forgot', async (req, res) => {
   res.json(genericResponse);
 });
 
-app.post('/api/auth/reset-password', (req, res) => {
+app.post('/api/auth/reset-password', resetLimiter, (req, res) => {
   const { token, password } = req.body || {};
   if (!token || !password) return res.status(400).json({ error: 'Token and new password are required.' });
   if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
