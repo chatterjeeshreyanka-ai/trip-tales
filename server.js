@@ -22,6 +22,25 @@ const app = express();
 app.set('trust proxy', 1);
 
 app.use(cors({ origin: FRONTEND_ORIGIN, credentials: true }));
+
+// CORS only stops browser JS from reading a cross-origin response; it does
+// not stop a malicious page from sending a request in the first place when
+// the request is "simple" (e.g. a plain multipart/form-data POST needs no
+// preflight). Since session cookies use SameSite=None in production to
+// support the split Netlify/Render origins, that gap is a real CSRF vector
+// for state-changing routes. Block it by requiring the browser-set Origin
+// header, when present, to match either the known frontend or the request's
+// own host (same-origin requests, e.g. local dev serving both from one port).
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+app.use((req, res, next) => {
+  if (SAFE_METHODS.has(req.method)) return next();
+  const origin = req.headers.origin;
+  if (!origin) return next();
+  const sameOrigin = `${req.protocol}://${req.get('host')}`;
+  if (origin === FRONTEND_ORIGIN || origin === sameOrigin) return next();
+  return res.status(403).json({ error: 'Cross-origin request blocked.' });
+});
+
 app.use(express.json());
 app.use(session({
   secret: process.env.SESSION_SECRET || 'trip-tales-dev-secret',
