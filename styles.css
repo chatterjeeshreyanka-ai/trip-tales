@@ -1371,4 +1371,16 @@ body.dark .gallery-upload-box { background: #1e1e1e; }
 
   .back-to-top { bottom: 20px; right: 20px; }
   .toast       { bottom: 74px; right: 20px; }
+
+  .footer { padding-bottom: 84px; }
+
+  .journal-entry,
+  .voice-entry { padding-right: 46px; }
+
+  .recorder-controls { flex-wrap: wrap; gap: 12px; }
+  .rec-btn { padding: 12px 22px; font-size: 0.92rem; white-space: nowrap; }
+
+  .gallery-delete-btn,
+  .gallery-edit-btn { opacity: 1; }
+  .gallery-overlay { transform: translateY(0); }
 }
