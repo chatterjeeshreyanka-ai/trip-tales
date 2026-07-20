@@ -5,6 +5,7 @@ const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
+const sharp = require('sharp');
 const cors = require('cors');
 const db = require('./db');
 
@@ -79,15 +80,33 @@ const upload = multer({
   fileFilter: (req, file, cb) => cb(null, file.mimetype === 'audio/webm'),
 });
 
+// Uploads are held in memory (not written to disk directly) so sharp can
+// resize and re-encode them to WebP before the final file ever lands on
+// disk — user photos otherwise come straight off a phone camera at several
+// MB and full resolution, which is wasted bandwidth for anyone viewing the
+// gallery on mobile.
 const IMAGE_EXTENSIONS = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' };
 const imageUpload = multer({
-  storage: multer.diskStorage({
-    destination: UPLOAD_DIR,
-    filename: (req, file, cb) => cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${IMAGE_EXTENSIONS[file.mimetype] || ''}`),
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 8 * 1024 * 1024 },
   fileFilter: (req, file, cb) => cb(null, Object.prototype.hasOwnProperty.call(IMAGE_EXTENSIONS, file.mimetype)),
 });
+
+const GALLERY_IMAGE_MAX_DIMENSION = 1600;
+async function processGalleryImage(buffer) {
+  const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`;
+  await sharp(buffer, { animated: true })
+    .rotate()
+    .resize({
+      width: GALLERY_IMAGE_MAX_DIMENSION,
+      height: GALLERY_IMAGE_MAX_DIMENSION,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .webp({ quality: 82 })
+    .toFile(path.join(UPLOAD_DIR, filename));
+  return filename;
+}
 
 function publicUser(user) {
   return { id: user.id, name: user.name, email: user.email };
@@ -293,7 +312,7 @@ app.get('/api/gallery', (req, res) => {
   res.json({ items: rows.map(r => mapGalleryItem(r, viewerUserId, viewerIsAdmin)) });
 });
 
-app.post('/api/gallery', imageUpload.single('image'), (req, res) => {
+app.post('/api/gallery', imageUpload.single('image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'A JPEG, PNG, WEBP or GIF image is required.' });
   const place = (req.body.place || '').trim().toLowerCase();
   if (!place) return res.status(400).json({ error: 'Destination is required.' });
@@ -307,6 +326,13 @@ app.post('/api/gallery', imageUpload.single('image'), (req, res) => {
     if (user) uploaderName = user.name;
   }
   if (!uploaderName) uploaderName = 'Anonymous';
+
+  let filename;
+  try {
+    filename = await processGalleryImage(req.file.buffer);
+  } catch (err) {
+    return res.status(400).json({ error: 'Could not process that image.' });
+  }
 
   // Logged-in uploads are owned via user_id. Anonymous uploads get a random
   // delete token (only ever shown once, in this response) so the uploading
@@ -322,13 +348,13 @@ app.post('/api/gallery', imageUpload.single('image'), (req, res) => {
   const info = db.prepare(`
     INSERT INTO gallery_items (place, caption, emoji, gradient, large, image_filename, uploader_name, user_id, delete_token_hash)
     VALUES (?, ?, '', '', 0, ?, ?, ?, ?)
-  `).run(place, caption, req.file.filename, uploaderName, userId, deleteTokenHash);
+  `).run(place, caption, filename, uploaderName, userId, deleteTokenHash);
 
   res.json({
     item: {
       id: info.lastInsertRowid,
       place, caption, emoji: '', gradient: '', large: false,
-      imageUrl: `/uploads/${req.file.filename}`,
+      imageUrl: `/uploads/${filename}`,
       uploaderName,
       mine: !!userId,
       deleteToken,
@@ -479,7 +505,7 @@ app.post('/api/auth/signup', signupLimiter, (req, res) => {
 });
 
 app.post('/api/auth/login', loginLimiter, (req, res) => {
-  const { email, password } = req.body || {};
+  const { email, password, remember } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: 'Email and password are required.' });
 
   const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email.trim().toLowerCase());
@@ -488,6 +514,11 @@ app.post('/api/auth/login', loginLimiter, (req, res) => {
   }
 
   req.session.userId = user.id;
+  if (remember) {
+    req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+  } else {
+    req.session.cookie.expires = false; // browser-session cookie, gone when the browser closes
+  }
   res.json({ user: publicUser(user) });
 });
 

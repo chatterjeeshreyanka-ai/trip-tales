@@ -34,12 +34,13 @@ async function handleLogin(e) {
   const msg      = document.getElementById('loginMsg');
   const email    = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
+  const remember = document.getElementById('rememberMe').checked;
 
   try {
     const res = await apiFetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, remember }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Login failed.');
