@@ -205,6 +205,15 @@
   transform: translateY(-1px);
 }
 
+.auth-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.auth-btn:disabled:hover {
+  transform: none;
+}
+
 /* Messages */
 .auth-msg {
   text-align: center;
