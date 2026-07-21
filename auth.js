@@ -97,10 +97,6 @@ function togglePassword(inputId, icon) {
   }
 }
 
-function socialLogin(provider) {
-  alert(`${provider} login is not connected yet. Add OAuth credentials to enable it.`);
-}
-
 function showForgotModal(e) {
   e.preventDefault();
   document.getElementById('forgotModal').classList.add('open');

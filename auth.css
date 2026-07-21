@@ -261,6 +261,25 @@
   border-color: #e07b39;
 }
 
+.social-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  flex-direction: column;
+  gap: 2px;
+}
+.social-btn:disabled:hover {
+  background: #fff;
+  border-color: #e0e0e0;
+}
+
+.coming-soon-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
 .google-btn span {
   font-weight: 800;
   color: #ea4335;
