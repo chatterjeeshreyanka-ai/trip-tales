@@ -5,7 +5,7 @@ let pollTimer = null;
 document.addEventListener('DOMContentLoaded', async () => {
   await loadSession();
   if (!currentUser) {
-    document.getElementById('chatLoginGate').style.display = 'block';
+    document.getElementById('chatLoginGate').style.display = 'flex';
     document.getElementById('chatPage').style.display = 'none';
     return;
   }
