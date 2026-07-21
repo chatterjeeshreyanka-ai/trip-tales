@@ -15,6 +15,7 @@
   max-width: 440px;
   box-shadow: 0 12px 40px rgba(0,0,0,0.12);
 }
+body.dark .auth-card { background: #1e1e1e; }
 
 .auth-logo {
   font-size: 1.6rem;
@@ -39,6 +40,7 @@
   padding: 4px;
   margin-bottom: 28px;
 }
+body.dark .auth-tabs { background: #2a2a2a; }
 
 .auth-tab {
   flex: 1;
@@ -81,6 +83,7 @@
   font-weight: 600;
   color: #444;
 }
+body.dark .form-group label { color: #ccc; }
 
 .form-group input[type="text"],
 .form-group input[type="email"],
@@ -93,6 +96,13 @@
   transition: border-color 0.2s;
   color: #333;
   width: 100%;
+}
+body.dark .form-group input[type="text"],
+body.dark .form-group input[type="email"],
+body.dark .form-group input[type="password"] {
+  background: #2a2a2a;
+  border-color: #444;
+  color: #eee;
 }
 
 .form-group input:focus {
@@ -131,6 +141,7 @@
   margin-top: 6px;
   overflow: hidden;
 }
+body.dark .password-strength { background: #333; }
 
 .strength-fill {
   height: 100%;
@@ -160,6 +171,7 @@
   color: #555;
   cursor: pointer;
 }
+body.dark .remember-me { color: #ccc; }
 
 .forgot-link {
   color: #e07b39;
@@ -179,6 +191,7 @@
   color: #555;
   cursor: pointer;
 }
+body.dark .checkbox-group label { color: #ccc; }
 
 .checkbox-group a {
   color: #e07b39;
@@ -241,6 +254,8 @@
   height: 1px;
   background: #eee;
 }
+body.dark .auth-divider::before,
+body.dark .auth-divider::after { background: #444; }
 
 /* Social buttons */
 .social-btns {
@@ -264,6 +279,7 @@
   transition: background 0.2s, border-color 0.2s;
   color: #444;
 }
+body.dark .social-btn { background: #2a2a2a; border-color: #444; color: #eee; }
 
 .social-btn:hover {
   background: #fafafa;
@@ -279,6 +295,10 @@
 .social-btn:disabled:hover {
   background: #fff;
   border-color: #e0e0e0;
+}
+body.dark .social-btn:disabled:hover {
+  background: #2a2a2a;
+  border-color: #444;
 }
 
 .coming-soon-badge {
@@ -307,6 +327,7 @@
   font-size: 0.88rem;
   color: #888;
 }
+body.dark .switch-text { color: #999; }
 
 .switch-text a {
   color: #e07b39;
@@ -349,6 +370,7 @@
   position: relative;
   box-shadow: 0 12px 40px rgba(0,0,0,0.18);
 }
+body.dark .modal-box { background: #1e1e1e; }
 
 .modal-box h3 {
   font-size: 1.3rem;
@@ -356,6 +378,7 @@
   color: #222;
   margin-bottom: 8px;
 }
+body.dark .modal-box h3 { color: #eee; }
 
 .modal-box p {
   font-size: 0.9rem;
@@ -363,6 +386,7 @@
   margin-bottom: 22px;
   line-height: 1.5;
 }
+body.dark .modal-box p { color: #aaa; }
 
 .modal-box form {
   display: flex;
