@@ -15,7 +15,7 @@ const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://creative-palmier-f29a9c.netlify.app';
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://trip-tales.shop';
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'chatterjeeshreyanka@gmail.com')
   .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 

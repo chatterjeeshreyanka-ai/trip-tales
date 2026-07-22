@@ -11,7 +11,7 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: FRONTEND_ORIGIN
-        value: https://creative-palmier-f29a9c.netlify.app
+        value: https://trip-tales.shop
       - key: DATA_DIR
         value: /data
       - key: RESEND_API_KEY
