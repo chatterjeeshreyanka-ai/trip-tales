@@ -631,6 +631,18 @@ app.delete('/api/admin/users/:id', requireAuth, requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+// ---- Admin: newsletter subscribers ----
+app.get('/api/admin/subscribers', requireAuth, requireAdmin, (req, res) => {
+  const rows = db.prepare('SELECT id, email, created_at FROM subscribers ORDER BY id ASC').all();
+  res.json({ subscribers: rows });
+});
+
+app.delete('/api/admin/subscribers/:id', requireAuth, requireAdmin, (req, res) => {
+  const info = db.prepare('DELETE FROM subscribers WHERE id = ?').run(Number(req.params.id));
+  if (info.changes === 0) return res.status(404).json({ error: 'Subscriber not found.' });
+  res.json({ ok: true });
+});
+
 // ---- Favourites ----
 app.get('/api/favourites', requireAuth, (req, res) => {
   const rows = db.prepare('SELECT destination FROM favourites WHERE user_id = ?').all(req.session.userId);
