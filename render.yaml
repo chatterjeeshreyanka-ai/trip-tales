@@ -17,7 +17,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM
-        value: "Trip Tales <onboarding@resend.dev>"
+        value: "Trip Tales <noreply@trip-tales.shop>"
       - key: ADMIN_EMAILS
         value: chatterjeeshreyanka@gmail.com,chatterjeeshreyanka+admin@gmail.com
     disk:
