@@ -238,7 +238,7 @@ app.get('/api/stories', (req, res) => {
 app.get('/api/journal', (req, res) => {
   const viewerUserId = req.session.userId || null;
   const viewerIsAdmin = isAdmin(viewerUserId);
-  const rows = db.prepare('SELECT * FROM journal_entries ORDER BY id DESC').all();
+  const rows = db.prepare('SELECT * FROM journal_entries ORDER BY id DESC LIMIT 100').all();
   res.json({
     entries: rows.map(r => ({
       id: r.id,
@@ -308,7 +308,7 @@ function mapGalleryItem(r, viewerUserId, viewerIsAdmin) {
 app.get('/api/gallery', (req, res) => {
   const viewerUserId = req.session.userId || null;
   const viewerIsAdmin = isAdmin(viewerUserId);
-  const rows = db.prepare('SELECT * FROM gallery_items ORDER BY id ASC').all();
+  const rows = db.prepare('SELECT * FROM gallery_items ORDER BY id DESC LIMIT 100').all();
   res.json({ items: rows.map(r => mapGalleryItem(r, viewerUserId, viewerIsAdmin)) });
 });
 
@@ -488,8 +488,8 @@ app.post('/api/auth/signup', signupLimiter, (req, res) => {
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'Name, email and password are required.' });
   }
-  if (password.length < 6) {
-    return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters.' });
   }
 
   const normalizedEmail = email.trim().toLowerCase();
@@ -538,8 +538,8 @@ app.post('/api/auth/change-password', requireAuth, (req, res) => {
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ error: 'Current and new password are required.' });
   }
-  if (newPassword.length < 6) {
-    return res.status(400).json({ error: 'New password must be at least 6 characters.' });
+  if (newPassword.length < 8) {
+    return res.status(400).json({ error: 'New password must be at least 8 characters.' });
   }
 
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.userId);
@@ -583,7 +583,7 @@ app.post('/api/auth/forgot', forgotLimiter, async (req, res) => {
 app.post('/api/auth/reset-password', resetLimiter, (req, res) => {
   const { token, password } = req.body || {};
   if (!token || !password) return res.status(400).json({ error: 'Token and new password are required.' });
-  if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+  if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters.' });
 
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
   const record = db.prepare('SELECT * FROM password_resets WHERE token_hash = ?').get(tokenHash);

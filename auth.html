@@ -85,7 +85,7 @@
         <div class="form-group">
           <label>Password</label>
           <div class="password-wrap">
-            <input type="password" id="signupPassword" placeholder="Create a password" required />
+            <input type="password" id="signupPassword" placeholder="Create a password" minlength="8" required />
             <span class="toggle-pw" onclick="togglePassword('signupPassword', this)">👁️</span>
           </div>
           <div class="password-strength" id="strengthBar">
@@ -96,7 +96,7 @@
         <div class="form-group">
           <label>Confirm Password</label>
           <div class="password-wrap">
-            <input type="password" id="signupConfirm" placeholder="Repeat your password" required />
+            <input type="password" id="signupConfirm" placeholder="Repeat your password" minlength="8" required />
             <span class="toggle-pw" onclick="togglePassword('signupConfirm', this)">👁️</span>
           </div>
         </div>

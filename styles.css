@@ -1323,19 +1323,13 @@ body.dark .gallery-upload-controls input[type="file"] { color: #aaa; }
   color: #e07b39;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .navbar {
-    padding: 14px 16px;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .logo { font-size: 1.3rem; }
+/* Nav switches to the hamburger menu well before 768px — between 768px and
+   ~1040px there isn't room for the logo + all nav links + auth button in one
+   row, and without this they wrap mid-word instead of collapsing cleanly. */
+@media (max-width: 1040px) {
+  .navbar { flex-wrap: wrap; gap: 8px; }
 
   .hamburger { display: flex; }
-
-  .dark-toggle { width: 32px; height: 32px; font-size: 0.9rem; }
 
   .nav-links {
     display: none;
@@ -1355,6 +1349,19 @@ body.dark .gallery-upload-controls input[type="file"] { color: #aaa; }
     padding: 10px 20px;
     font-size: 1rem;
   }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 14px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .logo { font-size: 1.3rem; }
+
+  .dark-toggle { width: 32px; height: 32px; font-size: 0.9rem; }
 
   .nav-actions {
     margin-left: auto;
