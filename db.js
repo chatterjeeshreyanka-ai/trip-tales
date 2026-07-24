@@ -161,6 +161,18 @@ const destinationSeed = [
     cardDesc: 'The spiritual headquarters of the Hare Krishna movement, crowned by the awe-inspiring Chandrodaya Mandir on the banks of the Ganges.',
     fullDesc: 'Mayapur is revered as the birthplace of Sri Chaitanya Mahaprabhu and serves as the global headquarters of ISKCON. Pilgrims and visitors are drawn to the soaring Chandrodaya Mandir, serene riverside ghats, and the town\'s deeply devotional atmosphere.',
     bestTime: 'November – March', type: 'Spiritual · Culture', idealStay: '1–2 days', tags: ['Spiritual', 'Culture'] },
+  { id: 'kashmir', name: 'Kashmir, India', emoji: '🏔️', bg: '#b3e5fc',
+    cardDesc: 'Paradise on Earth — snow-capped peaks, houseboats on Dal Lake, and endless Mughal gardens in the Kashmir Valley.',
+    fullDesc: 'Often called "Paradise on Earth," Kashmir enchants with the serene waters of Dal Lake dotted with houseboats and shikaras, the Mughal terraced gardens of Srinagar, and the snow-draped peaks of Gulmarg and Pahalgam. A land of saffron fields, apple orchards, and timeless beauty.',
+    bestTime: 'March – October', type: 'Mountains · Nature', idealStay: '4–6 days', tags: ['Mountains', 'Nature'] },
+  { id: 'sikkim', name: 'Sikkim, India', emoji: '🏞️', bg: '#c8e6c9',
+    cardDesc: 'A Himalayan gem of monasteries, alpine lakes, and views of Kangchenjunga, the world\'s third-highest peak.',
+    fullDesc: 'Tucked into the Eastern Himalayas, Sikkim offers pristine monasteries like Rumtek and Pemayangtse, the turquoise waters of Tsomgo Lake, and sweeping views of Kangchenjunga. Gangtok\'s laid-back charm and Yumthang Valley\'s spring blooms make it a haven for nature lovers and pilgrims alike.',
+    bestTime: 'March – June, Sept – Dec', type: 'Mountains · Culture', idealStay: '4–5 days', tags: ['Mountains', 'Culture'] },
+  { id: 'ladakh', name: 'Ladakh, India', emoji: '🏜️', bg: '#e1f5fe',
+    cardDesc: 'A high-altitude desert of dramatic monasteries, turquoise lakes, and some of the world\'s highest motorable passes.',
+    fullDesc: 'Ladakh\'s stark Himalayan desert landscape is home to ancient Buddhist monasteries like Thiksey and Hemis, the mesmerising blue of Pangong Tso, and death-defying mountain passes like Khardung La. A land of cold deserts, prayer flags, and unmatched high-altitude adventure.',
+    bestTime: 'May – September', type: 'Mountains · Adventure', idealStay: '5–7 days', tags: ['Mountains', 'Adventure'] },
 ];
 
 const storySeed = [
@@ -172,31 +184,6 @@ const storySeed = [
   { author: 'Arjun T.', destination: 'Darjeeling, India', avatar: '👨‍🦰', text: 'Waking up at 4am for the Tiger Hill sunrise over Kangchenjunga was worth every shiver. A cup of fresh Darjeeling tea on the foggy toy train ride afterward sealed it as my favourite hill trip ever.', stars: 5 },
   { author: 'Sanjana K.', destination: 'Puri, India', avatar: '👩‍🦳', text: 'Watching the Rath Yatra chariots roll through Puri amid thousands of chanting devotees was overwhelming in the best way — pure devotion in motion.', stars: 5 },
   { author: 'Gaurav D.', destination: 'Mayapur, India', avatar: '👨‍🦲', text: 'The evening aarti at the Chandrodaya Mandir in Mayapur, with the Ganges flowing right beside it, gave me a sense of peace I still carry with me.', stars: 5 },
-];
-
-const gallerySeed = [
-  { place: 'haridwar', caption: 'Ganga Aarti', emoji: '🕉️', gradient: '135deg,#ffe0b2,#ffb74d', large: 0 },
-  { place: 'haridwar', caption: 'Har Ki Pauri', emoji: '🌊', gradient: '135deg,#ffcc80,#ff8a65', large: 1 },
-  { place: 'rishikesh', caption: 'River Rafting', emoji: '🏞️', gradient: '135deg,#c8e6c9,#66bb6a', large: 0 },
-  { place: 'rishikesh', caption: 'Yoga Retreat', emoji: '🧘', gradient: '135deg,#a5d6a7,#43a047', large: 0 },
-  { place: 'varanasi', caption: 'Evening Aarti', emoji: '🪔', gradient: '135deg,#ffe8cc,#ffab40', large: 1 },
-  { place: 'varanasi', caption: 'Boat Ride on Ganges', emoji: '🛶', gradient: '135deg,#ffd180,#ff6d00', large: 0 },
-  { place: 'vizag', caption: 'RK Beach', emoji: '🌊', gradient: '135deg,#b3e5fc,#0288d1', large: 0 },
-  { place: 'vizag', caption: 'Araku Valley', emoji: '🐚', gradient: '135deg,#81d4fa,#0277bd', large: 1 },
-  { place: 'lucknow', caption: 'Bara Imambara', emoji: '🏰', gradient: '135deg,#f8bbd0,#e91e63', large: 0 },
-  { place: 'lucknow', caption: 'Tunday Kababs', emoji: '🍢', gradient: '135deg,#f48fb1,#c2185b', large: 0 },
-  { place: 'agra', caption: 'Taj Mahal at Sunrise', emoji: '🕌', gradient: '135deg,#e1f5fe,#0288d1', large: 1 },
-  { place: 'agra', caption: 'Agra Fort', emoji: '🏯', gradient: '135deg,#bbdefb,#1976d2', large: 0 },
-  { place: 'mussoorie', caption: 'Mall Road', emoji: '⛰️', gradient: '135deg,#dcedc8,#558b2f', large: 0 },
-  { place: 'mussoorie', caption: 'Kempty Falls', emoji: '💧', gradient: '135deg,#c5e1a5,#33691e', large: 1 },
-  { place: 'purulia', caption: 'Chhau Dance', emoji: '🎭', gradient: '135deg,#ffab91,#ff7043', large: 0 },
-  { place: 'purulia', caption: 'Ajodhya Hills', emoji: '🏞️', gradient: '135deg,#ffccbc,#d84315', large: 1 },
-  { place: 'darjeeling', caption: 'Tea Gardens', emoji: '🍃', gradient: '135deg,#b2dfdb,#00796b', large: 1 },
-  { place: 'darjeeling', caption: 'Toy Train', emoji: '🚂', gradient: '135deg,#c8e6c9,#33691e', large: 0 },
-  { place: 'puri', caption: 'Jagannath Temple', emoji: '🛕', gradient: '135deg,#fff59d,#fbc02d', large: 0 },
-  { place: 'puri', caption: 'Puri Beach', emoji: '🌊', gradient: '135deg,#ffe082,#ff8f00', large: 1 },
-  { place: 'mayapur', caption: 'Chandrodaya Mandir', emoji: '🪷', gradient: '135deg,#ce93d8,#8e24aa', large: 1 },
-  { place: 'mayapur', caption: 'Ganges Ghat', emoji: '🛶', gradient: '135deg,#e1bee7,#6a1b9a', large: 0 },
 ];
 
 // INSERT OR IGNORE (keyed on the id primary key) so newly added seed entries
@@ -230,18 +217,8 @@ const gallerySeed = [
   tx(storySeed);
 }
 
-{
-  const insert = db.prepare(`
-    INSERT INTO gallery_items (place, caption, emoji, gradient, large)
-    VALUES (@place, @caption, @emoji, @gradient, @large)
-  `);
-  const exists = db.prepare('SELECT 1 FROM gallery_items WHERE place = ? AND caption = ?');
-  const tx = db.transaction((rows) => {
-    for (const r of rows) {
-      if (!exists.get(r.place, r.caption)) insert.run(r);
-    }
-  });
-  tx(gallerySeed);
-}
+// Gallery seeding intentionally removed: the illustrated placeholder photos
+// have been replaced by real guest uploads, and re-seeding on every restart
+// was silently resurrecting them after an admin deleted them.
 
 module.exports = db;
