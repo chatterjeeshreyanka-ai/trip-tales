@@ -175,6 +175,8 @@
     <!-- Lightbox -->
     <div class="lightbox" id="lightbox" onclick="closeLightbox()">
       <button class="lightbox-close" onclick="closeLightbox()" title="Close">✕</button>
+      <button class="lightbox-arrow lightbox-arrow-prev" onclick="event.stopPropagation(); lightboxNav(-1)" title="Previous photo">&#10094;</button>
+      <button class="lightbox-arrow lightbox-arrow-next" onclick="event.stopPropagation(); lightboxNav(1)" title="Next photo">&#10095;</button>
       <div class="lightbox-zoom-controls" id="lightboxZoomControls" onclick="event.stopPropagation()">
         <button onclick="zoomLightbox(-1)" title="Zoom out">−</button>
         <button onclick="resetLightboxZoom()" title="Reset zoom">⤢</button>

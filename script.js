@@ -119,9 +119,10 @@ function openDestModal(id) {
   if (!d) return;
   const box = document.getElementById('destModalBox');
   const photos = galleryItemsCache.filter(i => i.place === id);
+  const photoIds = photos.map(p => p.id).join(',');
   const gallerySection = photos.length
     ? `<div class="dm-gallery">${photos.map(item => `
-        <div class="dm-gallery-item" onclick="openLightboxById(${item.id})">
+        <div class="dm-gallery-item" onclick="openLightboxById(${item.id}, [${photoIds}])">
           ${item.imageUrl
             ? `<img src="${API_BASE}${item.imageUrl}" alt="${escapeHtml(item.caption)}" />`
             : `<span style="background:linear-gradient(${item.gradient});">${item.emoji}</span>`}
@@ -372,7 +373,13 @@ async function loadGallery() {
     document.querySelectorAll('.gallery-item').forEach(item => {
       item.addEventListener('click', () => {
         const galleryItem = galleryItemsCache.find(i => i.id === Number(item.dataset.id));
-        if (galleryItem) openLightbox(galleryItem);
+        if (!galleryItem) return;
+        // Navigate through whatever the active filter is currently showing,
+        // not the full unfiltered set.
+        const visibleIds = Array.from(document.querySelectorAll('.gallery-item:not(.hidden-item)'))
+          .map(el => Number(el.dataset.id));
+        const context = visibleIds.map(id => galleryItemsCache.find(i => i.id === id)).filter(Boolean);
+        openLightbox(galleryItem, context);
       });
     });
   } catch (err) {
@@ -510,13 +517,36 @@ let lightboxDragging = false;
 let lightboxDragStart = { x: 0, y: 0 };
 let lightboxPanStart = { x: 0, y: 0 };
 
-function openLightboxById(id) {
+let lightboxContext = [];
+let lightboxIndex = -1;
+
+function openLightboxById(id, contextIds) {
   const item = galleryItemsCache.find(i => i.id === id);
-  if (item) openLightbox(item);
+  if (!item) return;
+  const context = contextIds
+    ? contextIds.map(cid => galleryItemsCache.find(i => i.id === cid)).filter(Boolean)
+    : undefined;
+  openLightbox(item, context);
 }
 
-function openLightbox(item) {
-  const lb = document.getElementById('lightbox');
+function openLightbox(item, context) {
+  lightboxContext = context && context.length ? context : [item];
+  lightboxIndex = lightboxContext.findIndex(i => i.id === item.id);
+  if (lightboxIndex === -1) lightboxIndex = 0;
+
+  renderLightboxItem(lightboxContext[lightboxIndex]);
+
+  document.getElementById('lightbox').classList.add('open');
+  document.addEventListener('keydown', handleLightboxKeydown);
+}
+
+function lightboxNav(direction) {
+  if (lightboxContext.length < 2) return;
+  lightboxIndex = (lightboxIndex + direction + lightboxContext.length) % lightboxContext.length;
+  renderLightboxItem(lightboxContext[lightboxIndex]);
+}
+
+function renderLightboxItem(item) {
   const thumb = document.getElementById('lightboxThumb');
   const zoomControls = document.getElementById('lightboxZoomControls');
   const place = item.place.charAt(0).toUpperCase() + item.place.slice(1);
@@ -543,8 +573,8 @@ function openLightbox(item) {
     zoomControls.style.display = 'none';
   }
 
-  lb.classList.add('open');
-  document.addEventListener('keydown', handleLightboxKeydown);
+  document.querySelectorAll('.lightbox-arrow')
+    .forEach(b => b.classList.toggle('visible', lightboxContext.length > 1));
 }
 
 function closeLightbox() {
@@ -554,6 +584,8 @@ function closeLightbox() {
 
 function handleLightboxKeydown(e) {
   if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowLeft') lightboxNav(-1);
+  if (e.key === 'ArrowRight') lightboxNav(1);
 }
 
 function setLightboxZoom(newZoom) {
