@@ -110,6 +110,8 @@ ensureColumn('gallery_items', 'uploader_name', 'TEXT');
 ensureColumn('gallery_items', 'user_id', 'INTEGER');
 ensureColumn('gallery_items', 'delete_token_hash', 'TEXT');
 ensureColumn('voice_entries', 'user_id', 'INTEGER');
+ensureColumn('users', 'location', 'TEXT');
+ensureColumn('users', 'avatar_filename', 'TEXT');
 
 // One-off cleanup: remove test photos uploaded while verifying the upload
 // feature, before ownership tracking existed.

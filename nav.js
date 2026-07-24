@@ -61,8 +61,11 @@ function renderAuthArea() {
   const area = document.getElementById('authArea');
   if (!area) return;
   if (currentUser) {
+    const avatar = currentUser.avatarUrl
+      ? `<img src="${API_BASE}${currentUser.avatarUrl}" class="nav-avatar" alt="" />`
+      : '';
     area.innerHTML = `
-      <span class="nav-user">Hi, ${escapeHtml(currentUser.name.split(' ')[0])}</span>
+      <a href="profile.html" class="nav-user-link">${avatar}<span class="nav-user">Hi, ${escapeHtml(currentUser.name.split(' ')[0])}</span></a>
       <button type="button" class="nav-auth-btn" onclick="logout()">Logout</button>
     `;
   } else {

@@ -108,8 +108,25 @@ async function processGalleryImage(buffer) {
   return filename;
 }
 
+const AVATAR_DIMENSION = 400;
+async function processAvatarImage(buffer) {
+  const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`;
+  await sharp(buffer)
+    .rotate()
+    .resize({ width: AVATAR_DIMENSION, height: AVATAR_DIMENSION, fit: 'cover' })
+    .webp({ quality: 85 })
+    .toFile(path.join(UPLOAD_DIR, filename));
+  return filename;
+}
+
 function publicUser(user) {
-  return { id: user.id, name: user.name, email: user.email };
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    location: user.location || null,
+    avatarUrl: user.avatar_filename ? `/uploads/${user.avatar_filename}` : null,
+  };
 }
 
 function isAdmin(userId) {
@@ -554,6 +571,48 @@ app.post('/api/auth/change-password', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
+app.put('/api/profile', requireAuth, (req, res) => {
+  const name = (req.body.name || '').trim();
+  const email = (req.body.email || '').trim().toLowerCase();
+  const location = (req.body.location || '').trim();
+  if (!name || !email) return res.status(400).json({ error: 'Name and email are required.' });
+
+  const existing = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(email, req.session.userId);
+  if (existing) return res.status(409).json({ error: 'That email is already in use by another account.' });
+
+  db.prepare('UPDATE users SET name = ?, email = ?, location = ? WHERE id = ?')
+    .run(name, email, location || null, req.session.userId);
+
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.userId);
+  res.json({ user: publicUser(user) });
+});
+
+app.post('/api/profile/photo', requireAuth, imageUpload.single('photo'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'A JPEG, PNG, WEBP or GIF image is required.' });
+
+  const user = db.prepare('SELECT avatar_filename FROM users WHERE id = ?').get(req.session.userId);
+  let filename;
+  try {
+    filename = await processAvatarImage(req.file.buffer);
+  } catch (err) {
+    return res.status(400).json({ error: 'Could not process that image.' });
+  }
+
+  db.prepare('UPDATE users SET avatar_filename = ? WHERE id = ?').run(filename, req.session.userId);
+  if (user.avatar_filename) fs.unlink(path.join(UPLOAD_DIR, user.avatar_filename), () => {});
+
+  res.json({ avatarUrl: `/uploads/${filename}` });
+});
+
+app.delete('/api/profile/photo', requireAuth, (req, res) => {
+  const user = db.prepare('SELECT avatar_filename FROM users WHERE id = ?').get(req.session.userId);
+  if (user.avatar_filename) {
+    fs.unlink(path.join(UPLOAD_DIR, user.avatar_filename), () => {});
+    db.prepare('UPDATE users SET avatar_filename = NULL WHERE id = ?').run(req.session.userId);
+  }
+  res.json({ ok: true });
+});
+
 app.post('/api/auth/forgot', forgotLimiter, async (req, res) => {
   const email = (req.body.email || '').trim().toLowerCase();
   const genericResponse = { message: "If that email is registered, we've sent a reset link." };
@@ -622,7 +681,7 @@ app.delete('/api/admin/users/:id', requireAuth, requireAdmin, (req, res) => {
     return res.status(400).json({ error: 'Cannot delete your own account from here.' });
   }
 
-  const user = db.prepare('SELECT id FROM users WHERE id = ?').get(targetId);
+  const user = db.prepare('SELECT id, avatar_filename FROM users WHERE id = ?').get(targetId);
   if (!user) return res.status(404).json({ error: 'User not found.' });
 
   const photos = db.prepare('SELECT image_filename FROM gallery_items WHERE user_id = ? AND image_filename IS NOT NULL').all(targetId);
@@ -639,6 +698,7 @@ app.delete('/api/admin/users/:id', requireAuth, requireAdmin, (req, res) => {
   for (const photo of photos) {
     fs.unlink(path.join(UPLOAD_DIR, photo.image_filename), () => {});
   }
+  if (user.avatar_filename) fs.unlink(path.join(UPLOAD_DIR, user.avatar_filename), () => {});
 
   res.json({ ok: true });
 });

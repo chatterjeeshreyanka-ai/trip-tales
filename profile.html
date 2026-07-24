@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile — Trip Tales</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="chat.css" />
+  <link rel="stylesheet" href="profile.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <a class="logo" href="index.html">&#9992; Trip Tales</a>
+
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html#home" onclick="closeMenu()">Home</a></li>
+      <li><a href="index.html#destinations" onclick="closeMenu()">Destinations</a></li>
+      <li><a href="index.html#journal" onclick="closeMenu()">Journal</a></li>
+      <li><a href="index.html#voice" onclick="closeMenu()">Voice Entries</a></li>
+      <li><a href="index.html#gallery" onclick="closeMenu()">Gallery</a></li>
+      <li><a href="chat.html" onclick="closeMenu()">Chat</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="dark-toggle" id="darkToggle" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
+      <span id="authArea"><a href="auth.html" class="nav-auth-btn">Login / Sign Up</a></span>
+    </div>
+  </nav>
+
+  <!-- Login gate -->
+  <div class="chat-login-gate" id="profileLoginGate" style="display:none;">
+    <div class="chat-login-card">
+      <div class="chat-login-icon">👤</div>
+      <h2>Your Profile</h2>
+      <p>Log in to view and edit your profile.</p>
+      <a href="auth.html" class="btn">Log In</a>
+    </div>
+  </div>
+
+  <!-- Profile -->
+  <div class="auth-page" id="profilePage" style="display:none;">
+    <div class="auth-card profile-card">
+      <h2 class="profile-title">My Profile</h2>
+
+      <div class="profile-photo-section">
+        <div class="profile-photo-wrap">
+          <img id="profilePhotoPreview" class="profile-photo" src="" alt="Profile photo" style="display:none;" />
+          <span id="profilePhotoPlaceholder" class="profile-photo-placeholder">👤</span>
+        </div>
+        <div class="profile-photo-actions">
+          <label class="btn profile-photo-btn">
+            Change Photo
+            <input type="file" id="profilePhotoInput" accept="image/jpeg,image/png,image/webp,image/gif" onchange="uploadProfilePhoto(event)" hidden />
+          </label>
+          <button type="button" class="profile-photo-remove" id="removePhotoBtn" onclick="removeProfilePhoto()" style="display:none;">Remove</button>
+        </div>
+      </div>
+
+      <form class="auth-form" id="profileForm" onsubmit="saveProfile(event)">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="profileName" required />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="profileEmail" required />
+        </div>
+        <div class="form-group">
+          <label>Location</label>
+          <input type="text" id="profileLocation" placeholder="City, Country" />
+        </div>
+        <button type="submit" class="auth-btn">Save Changes</button>
+        <p class="auth-msg" id="profileMsg"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="config.js"></script>
+  <script src="nav.js"></script>
+  <script src="profile.js"></script>
+</body>
+</html>

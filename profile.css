@@ -1,0 +1,68 @@
+.profile-card {
+  max-width: 480px;
+}
+
+.profile-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 24px;
+  color: #222;
+}
+body.dark .profile-title { color: #eee; }
+
+.profile-photo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.profile-photo-wrap {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f4f4f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #e07b39;
+}
+body.dark .profile-photo-wrap { background: #2a2a2a; }
+
+.profile-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-photo-placeholder {
+  font-size: 3rem;
+  color: #ccc;
+}
+
+.profile-photo-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.profile-photo-btn {
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.profile-photo-remove {
+  background: none;
+  border: none;
+  color: #c62828;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.profile-photo-remove:hover {
+  text-decoration: underline;
+}
