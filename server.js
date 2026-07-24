@@ -391,7 +391,9 @@ app.put('/api/gallery/:id', (req, res) => {
 app.delete('/api/gallery/:id', (req, res) => {
   const row = db.prepare('SELECT * FROM gallery_items WHERE id = ?').get(req.params.id);
   if (!row) return res.status(404).json({ error: 'Photo not found.' });
-  if (!row.image_filename) return res.status(403).json({ error: 'This item cannot be deleted.' });
+  if (!row.image_filename && !isAdmin(req.session.userId)) {
+    return res.status(403).json({ error: 'This item cannot be deleted.' });
+  }
 
   if (!isAdmin(req.session.userId)) {
     if (row.user_id != null) {
@@ -408,7 +410,7 @@ app.delete('/api/gallery/:id', (req, res) => {
   }
 
   db.prepare('DELETE FROM gallery_items WHERE id = ?').run(row.id);
-  fs.unlink(path.join(UPLOAD_DIR, row.image_filename), () => {});
+  if (row.image_filename) fs.unlink(path.join(UPLOAD_DIR, row.image_filename), () => {});
 
   res.json({ ok: true });
 });
