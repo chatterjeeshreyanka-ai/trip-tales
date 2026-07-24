@@ -101,6 +101,7 @@ async function loadDestinations() {
     populateDestinationSelect('voice-destination', destinations, d => d.name);
     populateDestinationSelect('gallery-destination', destinations, d => d.id);
     renderJournalCompose();
+    renderGalleryFilters(galleryItemsCache);
   } catch (err) {
     grid.innerHTML = '<p class="loading-msg">Could not load destinations.</p>';
   }
@@ -372,8 +373,16 @@ async function loadGallery() {
 function renderGalleryFilters(items) {
   const container = document.getElementById('galleryFilters');
   if (!container) return;
-  const places = [...new Set(items.map(i => i.place))];
-  const label = place => place.charAt(0).toUpperCase() + place.slice(1);
+  const allDestinations = Object.values(destinationsById);
+  const label = place => destinationsById[place]
+    ? destinationsById[place].name.replace(', India', '')
+    : place.charAt(0).toUpperCase() + place.slice(1);
+  // Show every destination, not just ones with a photo already, so guests
+  // know where they can contribute — falls back to whatever places are
+  // actually in the gallery if destinations haven't loaded yet.
+  const places = allDestinations.length
+    ? allDestinations.map(d => d.id)
+    : [...new Set(items.map(i => i.place))];
 
   container.innerHTML = `<button class="gf-btn active" onclick="filterGallery('all', this)">All</button>`
     + places.map(p => `<button class="gf-btn" onclick="filterGallery('${p}', this)">${escapeHtml(label(p))}</button>`).join('');
