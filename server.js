@@ -606,6 +606,16 @@ app.get('/api/admin/users', requireAuth, requireAdmin, (req, res) => {
   res.json({ users: rows });
 });
 
+app.put('/api/admin/users/:id', requireAuth, requireAdmin, (req, res) => {
+  const targetId = Number(req.params.id);
+  const name = (req.body.name || '').trim();
+  if (!name) return res.status(400).json({ error: 'Name is required.' });
+
+  const info = db.prepare('UPDATE users SET name = ? WHERE id = ?').run(name, targetId);
+  if (info.changes === 0) return res.status(404).json({ error: 'User not found.' });
+  res.json({ ok: true });
+});
+
 app.delete('/api/admin/users/:id', requireAuth, requireAdmin, (req, res) => {
   const targetId = Number(req.params.id);
   if (targetId === req.session.userId) {
