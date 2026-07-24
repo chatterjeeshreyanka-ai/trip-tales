@@ -118,6 +118,15 @@ function openDestModal(id) {
   const d = destinationsById[id];
   if (!d) return;
   const box = document.getElementById('destModalBox');
+  const photos = galleryItemsCache.filter(i => i.place === id);
+  const gallerySection = photos.length
+    ? `<div class="dm-gallery">${photos.map(item => `
+        <div class="dm-gallery-item" onclick="openLightboxById(${item.id})">
+          ${item.imageUrl
+            ? `<img src="${API_BASE}${item.imageUrl}" alt="${escapeHtml(item.caption)}" />`
+            : `<span style="background:linear-gradient(${item.gradient});">${item.emoji}</span>`}
+        </div>`).join('')}</div>`
+    : `<p class="dm-gallery-empty">No photos yet — be the first to add one in the Gallery below!</p>`;
   box.innerHTML = `
     <div class="dm-header" style="background:${d.bg};">
       <span>${d.emoji}</span>
@@ -131,6 +140,7 @@ function openDestModal(id) {
         <span>📅 Best time: <strong>${escapeHtml(d.bestTime)}</strong></span>
         <span>🕐 Ideal stay: <strong>${escapeHtml(d.idealStay)}</strong></span>
       </div>
+      ${gallerySection}
     </div>`;
   document.getElementById('destModal').classList.add('open');
 }
@@ -499,6 +509,11 @@ let lightboxPanY = 0;
 let lightboxDragging = false;
 let lightboxDragStart = { x: 0, y: 0 };
 let lightboxPanStart = { x: 0, y: 0 };
+
+function openLightboxById(id) {
+  const item = galleryItemsCache.find(i => i.id === id);
+  if (item) openLightbox(item);
+}
 
 function openLightbox(item) {
   const lb = document.getElementById('lightbox');
